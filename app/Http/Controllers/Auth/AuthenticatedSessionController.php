@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 use Illuminate\View\View;
 
-class AuthenticatedSessionController
+class AuthenticatedSessionController extends Controller
 {
     public function create(): View
     {
@@ -32,11 +32,20 @@ class AuthenticatedSessionController
 
         $user = Auth::user();
 
-        // TUMEBORESHA HAPA: Tumetumia to() na route() badala ya intended()
+        // LOGIC YA REDIRECT KWA FUNDI
+        if ($user->role === 'technician') {
+            // Kama ana subscription inayofanya kazi, mpeleke Dashboard
+            if ($user->hasActiveSubscription()) {
+                return redirect()->route('technician.dashboard');
+            }
+            // Kama hana, mpeleke kwenye page ya malipo
+            return redirect()->route('technician.subscription.index');
+        }
+
+        // REDIRECT KWA ROLES NYINGINE
         return match ($user->role) {
-            'admin'      => redirect()->to('/admin'),
-            'technician' => redirect()->to(route('technician.subscription.index')),
-            default      => redirect()->to(route('customer.search')),
+            'admin' => redirect()->to('/admin'),
+            default => redirect()->route('customer.search'),
         };
     }
 
@@ -44,11 +53,9 @@ class AuthenticatedSessionController
     {
         Auth::guard('web')->logout();
         
-        // Hizi mbili zinasafisha kila kitu kilichohifadhiwa kwenye session ya kivinjari
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // TUMEBORESHA HAPA: Inamlazimisha kwenda kwenye route yenye jina 'welcome'
         return redirect()->route('welcome');
     }
 }

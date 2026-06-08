@@ -12,6 +12,7 @@ class SearchController extends Controller
 {
     public function index(Request $request): View
     {
+        // 1. Validations
         $request->validate([
             'category_id' => 'nullable|exists:categories,id',
             'latitude'    => 'nullable|numeric|between:-90,90',
@@ -20,19 +21,23 @@ class SearchController extends Controller
             'search'      => 'nullable|string|max:100',
         ]);
 
+        // 2. Query ya Msingi
         $query = TechnicianProfile::query()
             ->with(['user:id,name,phone', 'category:id,name']);
 
+        // 3. Filter: Jina
         if ($request->filled('search')) {
             $query->whereHas('user', fn($q) =>
                 $q->where('name', 'like', '%' . $request->search . '%')
             );
         }
 
+        // 4. Filter: Category
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 
+        // 5. Filter: GPS / Umbali
         if ($request->filled('latitude') && $request->filled('longitude')) {
             $lat    = $request->latitude;
             $lng    = $request->longitude;
@@ -52,20 +57,19 @@ class SearchController extends Controller
             $query->orderByDesc('average_rating');
         }
 
+        // 6. Pagination
         $technicians = $query->paginate(12)->withQueryString();
         $categories  = Category::where('is_active', true)->get();
 
         return view('customer.search.index', compact('technicians', 'categories'));
     }
 
-    // Technician profile view — loads portfolio works too
     public function show(int $id): View
     {
         $profile = TechnicianProfile::with(['user', 'category'])
             ->where('user_id', $id)
             ->firstOrFail();
 
-        // Load visible work portfolio
         $works = $profile->user->technicianWorks()->get();
 
         return view('customer.search.show', compact('profile', 'works'));

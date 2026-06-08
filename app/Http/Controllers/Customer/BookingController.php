@@ -120,4 +120,6 @@ class BookingController extends Controller
         return redirect()->route('customer.bookings.index')
                          ->with('success', 'Thank you! Your feedback has been submitted successfully.');
     }
+
+    
 }

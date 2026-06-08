@@ -119,11 +119,18 @@
       <div class="flex flex-col sm:flex-row gap-5">
 
         {{-- Avatar Container --}}
-        <div class="flex-shrink-0 mx-auto sm:mx-0">
-          <div class="w-18 h-18 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white text-2xl font-extrabold shadow-md shadow-emerald-500/20">
-            {{ strtoupper(substr($profile->user->name, 0, 2)) }}
-          </div>
-        </div>
+<div class="flex-shrink-0 mx-auto sm:mx-0">
+  @if($profile->profile_photo_url)
+    <img src="{{ $profile->profile_photo_url }}" 
+         alt="{{ $profile->user->name }}" 
+         class="w-32 h-32 rounded-2xl object-cover shadow-md">
+  @else
+    {{-- Fallback: Itaonyesha initials kama picha haipo --}}
+    <div class="w-18 h-18 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white text-2xl font-extrabold shadow-md shadow-emerald-500/20">
+      {{ strtoupper(substr($profile->user->name, 0, 2)) }}
+    </div>
+  @endif
+</div>
 
         {{-- Main Info --}}
         <div class="flex-1 min-w-0 text-center sm:text-left">

@@ -125,14 +125,7 @@
                         </p>
                     </div>
 
-                    @if($booking->agreed_price)
-                        <div>
-                            <h3 class="font-bold text-gray-800 mb-1 tracking-tight">Agreed Service Price</h3>
-                            <div class="bg-emerald-50/60 border border-emerald-100 px-4 py-2.5 rounded-xl">
-                                <span class="text-emerald-700 font-extrabold text-lg">TSh {{ number_format($booking->agreed_price) }}</span>
-                            </div>
-                        </div>
-                    @endif
+                   
                 </div>
             </div>
         </div>

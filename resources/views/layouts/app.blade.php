@@ -54,6 +54,7 @@
                class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('customer.bookings*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900' }}">
               My Bookings
             </a>
+            <a href="{{ route('customer.profile.edit') }}" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">My Profile</a>
           @endif
 
           @if(auth()->user()->isTechnician())
@@ -77,16 +78,28 @@
         @endauth
       </div>
 
-      {{-- KULIA: PROFILE NA SIGN OUT --}}
+{{-- KULIA: PROFILE NA SIGN OUT --}}
       <div class="flex items-center gap-3">
         @auth
-          <div class="flex items-center gap-2 pl-2">
-            <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-semibold">
-              {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-            </div>
-            <span class="text-sm font-medium text-gray-700 hidden sm:block">
-              {{ Str::words(auth()->user()->name, 1, '') }}
-            </span>
+         <div class="flex items-center gap-2">
+    {{-- Je, ni Technician na ana picha? --}}
+    @if(auth()->user()->isTechnician() && auth()->user()->technicianProfile && auth()->user()->technicianProfile->profile_photo)
+        <img src="{{ asset('storage/' . auth()->user()->technicianProfile->profile_photo) }}" 
+             alt="Profile" 
+             class="w-9 h-9 rounded-full object-cover border border-emerald-200">
+             
+    {{-- Kama ni Customer au Technician asiye na picha, tumia jina (initials) --}}
+    @else
+        <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-semibold border border-emerald-200">
+            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+        </div>
+    @endif
+
+    <span class="text-sm font-medium text-gray-700 hidden sm:block">
+        {{ Str::words(auth()->user()->name, 1, '') }}
+    </span>
+</div>
+
             <form method="POST" action="{{ route('logout') }}" class="hidden md:block border-l border-gray-200 pl-2 ml-1">
               @csrf
               <button type="submit" class="text-xs text-gray-400 hover:text-red-500 transition">Sign out</button>
@@ -97,6 +110,7 @@
           <a href="{{ route('register') }}" class="btn-primary text-white text-sm font-semibold px-4 py-2 rounded-xl">Get Started</a>
         @endauth
       </div>
+        
 
     </div>
   </div>
@@ -144,38 +158,57 @@
 
 {{-- SIDEBAR YA SIMU (Inafanya kazi Kwenye Simu/Browser Ndogo Tu - md:hidden) --}}
 @auth
-  <aside id="mobile-sidebar" class="fixed inset-y-0 left-0 top-0 z-50 w-64 bg-white border-r border-gray-100 transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between p-4 shadow-xl">
-    <div class="space-y-1">
-      <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
-        <span class="text-sm font-bold text-gray-900">Fundi<span class="text-emerald-600">Popote</span></span>
-        <button onclick="toggleSidebar()" class="text-gray-400 hover:text-gray-900 p-1">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      {{-- Links za Mteja kwenye Simu --}}
-      @if(auth()->user()->isCustomer())
-        <a href="{{ route('customer.search') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 {{ request()->routeIs('customer.search') ? 'bg-emerald-50 text-emerald-700 font-semibold' : '' }}">Find Technicians</a>
-        <a href="{{ route('customer.bookings.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 {{ request()->routeIs('customer.bookings*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : '' }}">My Bookings</a>
-      @endif
-
-      {{-- Links za Fundi kwenye Simu --}}
-      @if(auth()->user()->isTechnician())
-        <a href="{{ route('technician.dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 {{ request()->routeIs('technician.dashboard') ? 'bg-emerald-50 text-emerald-700 font-semibold' : '' }}">Dashboard</a>
-        <a href="{{ route('technician.profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 {{ request()->routeIs('technician.profile.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : '' }}">My Profile</a>
-        <a href="{{ route('technician.portfolio.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 {{ request()->routeIs('technician.portfolio.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : '' }}">Portfolio</a>
-        <a href="{{ route('technician.subscription.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 {{ request()->routeIs('technician.subscription.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : '' }}">Subscription</a>
-      @endif
+  {{-- Sidebar ya Simu - Imeboreshwa na Icons --}}
+<aside id="mobile-sidebar" class="fixed inset-y-0 left-0 top-0 z-50 w-64 bg-white border-r border-gray-100 transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col p-4 shadow-xl">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
+      <span class="text-sm font-bold text-gray-900">Fundi<span class="text-emerald-600">Popote</span></span>
+      <button onclick="toggleSidebar()" class="text-gray-400 hover:text-gray-900 p-1">X</button>
     </div>
 
-    {{-- Sign out ya Simu --}}
-    <div class="border-t border-gray-100 pt-3">
+    @if(auth()->user()->isCustomer())
+      <a href="{{ route('customer.search') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        Find Technicians
+      </a>
+      <a href="{{ route('customer.bookings.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        My Bookings
+      </a>
+      <a href="{{ route('customer.profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        My Profile
+      </a>
+    @endif
+
+    @if(auth()->user()->isTechnician())
+      <a href="{{ route('technician.dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        Dashboard
+      </a>
+      <a href="{{ route('technician.profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        My Profile
+      </a>
+      <a href="{{ route('technician.portfolio.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+        Portfolio
+      </a>
+      <a href="{{ route('technician.subscription.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        Subscription
+      </a>
+    @endif
+
+    <div class="mt-auto border-t border-gray-100 pt-3">
       <form method="POST" action="{{ route('logout') }}">
         @csrf
-        <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition">Sign Out</button>
+        <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Sign Out
+        </button>
       </form>
     </div>
-  </aside>
+</aside>
 
   {{-- Backdrop giza la nyuma (Simu tu) --}}
   <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 hidden md:hidden"></div>

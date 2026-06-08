@@ -213,6 +213,44 @@
         </div>
     </form>
 
+
+  
+</div>
+
+{{-- Section 4: Password Update --}}
+<div class="bg-white rounded-2xl border border-slate-100 p-6 mb-8">
+    <h2 class="text-base font-semibold text-slate-800 mb-4">Security Settings</h2>
+    
+    {{-- HAPA NDIPO TUNAFANYA MABADILIKO --}}
+    <form method="POST" action="{{ route('technician.profile.password') }}">
+        @csrf
+        @method('PATCH')
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Current Password</label>
+                <input type="password" name="current_password" required
+                       class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">New Password</label>
+                <input type="password" name="password" required
+                       class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Confirm New Password</label>
+                <input type="password" name="password_confirmation" required
+                       class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+            </div>
+        </div>
+        
+        <button type="submit" 
+                class="mt-4 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl transition text-sm">
+            Update Password
+        </button>
+    </form>
+</div>
+
     {{-- Profile Preview (As Customers See It) --}}
     @if($profile)
     <div class="mt-8 bg-white rounded-2xl border border-slate-100 p-5">

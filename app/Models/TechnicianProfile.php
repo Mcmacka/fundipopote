@@ -87,4 +87,17 @@ public function getAverageRatingAttribute()
 {
     return $this->reviews()->avg('rating') ?? 0;
 }
+
+
+public function getProfilePhotoUrlAttribute(): ?string
+{
+    // Tunatumia 'profile_photo' kama ulivyoiandika kwenye $fillable
+    if ($this->profile_photo) {
+        return asset('storage/' . $this->profile_photo);
+    }
+    
+    // Kurudisha null kama picha haipo, ili Blade ifanye 'fallback'
+    return null;
+}
+
 }

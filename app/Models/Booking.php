@@ -102,4 +102,10 @@ class Booking extends Model
     {
         return $this->hasOne(Review::class, 'booking_id');
     }
+// Hii inakusaidia kuuliza: $booking->can_view_contact
+public function getCanViewContactAttribute(): bool
+{
+    return in_array($this->status, ['accepted', 'in_progress', 'completed']);
+}
+
 }

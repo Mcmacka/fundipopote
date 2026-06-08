@@ -19,12 +19,19 @@
     <div class="flex flex-col md:flex-row gap-8 items-start md:items-center justify-between">
       {{-- Identity Info Group --}}
       <div class="flex flex-col sm:flex-row gap-6 items-center text-center sm:text-left">
-        {{-- Avatar Box --}}
-        <div class="w-24 h-24 bg-gradient-to-tr from-emerald-500 to-emerald-400 p-[3px] rounded-2xl shadow-md shadow-emerald-500/10 flex-shrink-0">
-          <div class="w-full h-full bg-slate-900 rounded-[13px] flex items-center justify-center text-white text-2xl font-bold tracking-wide">
-            {{ strtoupper(substr($profile->user->name, 0, 2)) }}
-          </div>
-        </div>
+               {{-- Avatar Container --}}
+<div class="flex-shrink-0 mx-auto sm:mx-0">
+  @if($profile->profile_photo_url)
+    <img src="{{ $profile->profile_photo_url }}" 
+         alt="{{ $profile->user->name }}" 
+         class="w-32 h-32 rounded-2xl object-cover shadow-md">
+  @else
+    {{-- Fallback: Itaonyesha initials kama picha haipo --}}
+    <div class="w-18 h-18 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white text-2xl font-extrabold shadow-md shadow-emerald-500/20">
+      {{ strtoupper(substr($profile->user->name, 0, 2)) }}
+    </div>
+  @endif
+</div>
 
         {{-- Meta Badges --}}
         <div>

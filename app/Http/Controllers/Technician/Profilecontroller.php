@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Technician;
 
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\TechnicianProfile;
@@ -85,4 +87,19 @@ class ProfileController extends Controller
             ->route('technician.profile.edit')
             ->with('success', 'Your profile has been updated! Customers can now find you.');
     }
+
+    public function updatePassword(Request $request)
+{
+    $validated = $request->validate([
+        'current_password' => ['required', 'current_password'],
+        'password' => ['required', 'confirmed', Password::defaults()],
+    ]);
+
+    $request->user()->update([
+        'password' => Hash::make($validated['password']),
+    ]);
+
+    return back()->with('success', 'Password updated successfully!');
+}
+
 }
