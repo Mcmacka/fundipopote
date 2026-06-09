@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use Illuminate\Support\Facades\Auth;
 
 // Controllers za Mteja (Customer)
 use App\Http\Controllers\Customer\BookingController as CustomerBookingController;
@@ -24,6 +25,14 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+// ── Logout Route ──
+Route::post('/admin/logout', function () {
+    Auth::guard('web')->logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/'); 
+})->name('filament.admin.auth.logout');
+
 // ── Language Switcher ──
 Route::get('/language/{locale}', [LanguageController::class, 'switch'])
      ->name('language.switch')
@@ -38,13 +47,11 @@ Route::middleware(['auth', 'verified'])
     ->group(function () {
         Route::get('/search', [SearchController::class, 'index'])->name('search');
         Route::get('/technician/{id}', [SearchController::class, 'show'])->name('technician.show');
-        Route::patch('/profile/password', [CustomerProfileController::class, 'updatePassword']) ->name('profile.password');
+        Route::patch('/profile/password', [CustomerProfileController::class, 'updatePassword'])->name('profile.password');
         
-        // Profile
         Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [CustomerProfileController::class, 'update'])->name('profile.update');
 
-        // Bookings & Payments
         Route::get('/bookings', [CustomerBookingController::class, 'index'])->name('bookings.index');
         Route::get('/bookings/create', [CustomerBookingController::class, 'create'])->name('bookings.create');
         Route::post('/bookings', [CustomerBookingController::class, 'store'])->name('bookings.store');
@@ -53,6 +60,10 @@ Route::middleware(['auth', 'verified'])
         Route::post('/bookings/{booking}/rate', [CustomerBookingController::class, 'rate'])->name('bookings.rate');
         Route::get('/bookings/{booking}/pay', [PaymentController::class, 'create'])->name('payment.create');
         Route::post('/bookings/{booking}/pay', [PaymentController::class, 'store'])->name('payment.store');
+        Route::get('/bookings/{booking}/edit', [CustomerBookingController::class, 'edit'])->name('bookings.edit');
+        Route::patch('/bookings/{booking}', [CustomerBookingController::class, 'update'])->name('bookings.update');
+        Route::delete('/bookings/{booking}', [CustomerBookingController::class, 'destroy'])->name('bookings.destroy');
+
     });
 
 // ══════════════════════════════════════
@@ -64,13 +75,11 @@ Route::middleware(['auth', 'verified'])
     ->group(function () {
         Route::get('/subscription', [TechnicianSubscriptionController::class, 'index'])->name('subscription.index');
         Route::post('/subscription', [TechnicianSubscriptionController::class, 'store'])->name('subscription.store');
-        Route::patch('/profile/password', [PasswordController::class, 'update'])
-            ->name('profile.password');
         
-        // Profile (Kutumia Aliased Controller)
+        Route::patch('/profile/password', [PasswordController::class, 'update'])->name('profile.password');
+        
         Route::get('/profile', [TechnicianProfileController::class, 'edit'])->name('profile.edit');
-        Route::match(['put', 'patch'], '/profile', [TechnicianProfileController::class, 'update'])
-            ->name('profile.update');
+        Route::match(['put', 'patch'], '/profile', [TechnicianProfileController::class, 'update'])->name('profile.update');
         
         Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
         Route::get('/portfolio/create', [PortfolioController::class, 'create'])->name('portfolio.create');
@@ -80,12 +89,12 @@ Route::middleware(['auth', 'verified'])
 
         Route::middleware(['subscription.active'])->group(function () {
             Route::get('/dashboard', [TechnicianDashboardController::class, 'index'])->name('dashboard');
+            
+            // Hizi ndizo routes sahihi za Booking
             Route::get('/bookings', [TechnicianBookingController::class, 'index'])->name('bookings.index');
-            Route::patch('/bookings/{booking}/accept', [TechnicianBookingController::class, 'accept'])->name('bookings.accept');
-            Route::patch('/bookings/{booking}/reject', [TechnicianBookingController::class, 'reject'])->name('bookings.reject');
-            Route::patch('/bookings/{booking}/complete', [TechnicianBookingController::class, 'complete'])->name('bookings.complete');
-            Route::get('/bookings/{id}', [TechnicianBookingController::class, 'show'])->name('bookings.show');
-            Route::patch('/bookings/{booking}', [BookingController::class, 'update'])->name('technician.bookings.update');
+            Route::get('/bookings/{booking}', [TechnicianBookingController::class, 'show'])->name('bookings.show');
+            Route::patch('/bookings/{booking}', [TechnicianBookingController::class, 'update'])->name('bookings.update');
+            Route::post('/bookings/{booking}/complete', [TechnicianBookingController::class, 'complete'])->name('bookings.complete');
         });
     });
 

@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\TechnicianProfile;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Models\User;
 
 class SearchController extends Controller
 {
@@ -71,7 +72,7 @@ class SearchController extends Controller
             ->firstOrFail();
 
         $works = $profile->user->technicianWorks()->get();
-
+        $technicians = User::where('role', 'technician')->get();
         return view('customer.search.show', compact('profile', 'works'));
     }
 }

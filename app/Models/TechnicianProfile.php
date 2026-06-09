@@ -100,4 +100,12 @@ public function getProfilePhotoUrlAttribute(): ?string
     return null;
 }
 
+public function isBusy(): bool
+    {
+        return \App\Models\Booking::where('technician_id', $this->user_id)
+            ->whereIn('status', ['accepted', 'in_progress'])
+            ->exists();
+    }
+
+
 }

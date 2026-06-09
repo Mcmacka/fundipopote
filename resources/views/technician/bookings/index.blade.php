@@ -19,11 +19,26 @@
                             <p class="text-sm font-medium text-emerald-600 mt-1">TZS {{ number_format($booking->agreed_price) }}</p>
                         @endif
 
-                        {{-- KITUFE CHA KUTAZAMA TAARIFA ZAIDI --}}
-                        <a href="{{ route('technician.bookings.show', $booking->id) }}" 
-                           class="inline-block mt-3 text-xs font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg transition">
-                            View Request Details →
-                        </a>
+                        {{-- KITUFE CHA KUTAZAMA AU KUKUBALI KAZI --}}
+                        <div class="mt-4 flex gap-2">
+                            @if($booking->status === 'accepted' || $booking->status === 'in_progress' || $booking->status === 'completed')
+                                {{-- Button ya View Details --}}
+                                <a href="{{ route('technician.bookings.show', $booking->id) }}" 
+                                   class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg transition">
+                                    View Customer Details →
+                                </a>
+                            @elseif($booking->status === 'pending')
+                                {{-- Button ya Accept inayotumia update route --}}
+                                <form action="{{ route('technician.bookings.update', $booking->id) }}" method="POST">
+                                    @csrf @method('PATCH')
+                                    <input type="hidden" name="status" value="accepted">
+                                    <input type="hidden" name="agreed_price" value="{{ $booking->agreed_price ?? 0 }}">
+                                    <button type="submit" class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg transition">
+                                        Accept Job
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     </div>
 
                     <span class="text-xs px-3 py-1 rounded-full font-medium

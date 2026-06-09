@@ -9,24 +9,17 @@ use App\Notifications\BookingStatusNotification;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 
-/**
- * BookingService
- *
- * Owns the full booking lifecycle:
- * Customer creates → Technician accepts/rejects → Completed
- */
 class BookingService
 {
     /**
      * Create a new booking request.
-     * Notifies the assigned technician automatically.
      */
     public function createBooking(User $customer, array $data): Booking
     {
         return DB::transaction(function () use ($customer, $data) {
             $booking = Booking::create([
                 'customer_id'      => $customer->id,
-                'technician_id'    => $data['technician_id'],
+                'technician_id'    => $data['technician_id'] ?? null,
                 'category_id'      => $data['category_id'],
                 'description'      => $data['description'],
                 'location_address' => $data['location_address'],
@@ -36,25 +29,31 @@ class BookingService
                 'status'           => 'pending',
             ]);
 
-            // Notify the technician
-            $booking->technician->notify(new BookingRequestNotification($booking));
+            // Notify the technician if assigned
+            if ($booking->technician) {
+                $booking->technician->notify(new BookingRequestNotification($booking));
+            }
 
             return $booking;
         });
     }
 
     /**
-     * Technician accepts a booking and sets the agreed price.
+     * Technician accepts a booking.
      */
-    public function acceptBooking(Booking $booking, float $price, User $technician): Booking
+    public function acceptBooking(Booking $booking, User $technician): Booking
     {
-        throw_if(
-            $booking->technician_id !== $technician->id,
-            AuthorizationException::class,
-            'Huna ruhusa kukubali agizo hili.'
-        );
+        // Ruhusu kukubali kazi kama:
+        // 1. Kazi haijawa assigned kwa fundi mwingine (technician_id ni null)
+        // 2. AU kazi tayari ni ya kwako
+        if ($booking->technician_id !== null && $booking->technician_id !== $technician->id) {
+            throw new AuthorizationException('Huna ruhusa kukubali agizo hili.');
+        }
 
-        $booking->accept($price);
+        $booking->update([
+            'technician_id' => $technician->id,
+            'status'        => 'accepted',
+        ]);
 
         // Notify the customer
         $booking->customer->notify(new BookingStatusNotification($booking));
@@ -63,19 +62,20 @@ class BookingService
     }
 
     /**
-     * Technician rejects a booking with an optional reason.
+     * Technician rejects a booking.
      */
     public function rejectBooking(Booking $booking, string $reason, User $technician): Booking
     {
-        throw_if(
-            $booking->technician_id !== $technician->id,
-            AuthorizationException::class,
-            'Huna ruhusa kukataa agizo hili.'
-        );
+        // Hakikisha ni kazi yako au ni kazi huru
+        if ($booking->technician_id !== null && $booking->technician_id !== $technician->id) {
+            throw new AuthorizationException('Huna ruhusa kukataa agizo hili.');
+        }
 
-        $booking->reject($reason);
+        $booking->update([
+            'status' => 'rejected',
+            // Unaweza kuongeza column ya 'rejection_reason' kwenye model kama ipo
+        ]);
 
-        // Notify the customer
         $booking->customer->notify(new BookingStatusNotification($booking));
 
         return $booking;
@@ -86,12 +86,11 @@ class BookingService
      */
     public function completeBooking(Booking $booking, User $technician): Booking
     {
-        throw_if(
-            $booking->technician_id !== $technician->id,
-            AuthorizationException::class
-        );
+        if ($booking->technician_id !== $technician->id) {
+            throw new AuthorizationException('Huna ruhusa kukamilisha kazi hii.');
+        }
 
-        $booking->complete();
+        $booking->update(['status' => 'completed']);
 
         return $booking;
     }

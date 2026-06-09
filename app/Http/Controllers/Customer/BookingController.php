@@ -121,5 +121,35 @@ class BookingController extends Controller
                          ->with('success', 'Thank you! Your feedback has been submitted successfully.');
     }
 
+    public function edit(Booking $booking)
+{
+    // Mteja anaweza ku-edit ikiwa tu status ni 'pending'
+    abort_if($booking->status !== 'pending', 403, 'You cannot edit this request anymore.');
+    
+    return view('customer.bookings.edit', compact('booking'));
+}
+
+public function update(Request $request, Booking $booking)
+{
+    abort_if($booking->status !== 'pending', 403);
+
+    $validated = $request->validate([
+        'description' => 'required|string|max:500',
+        'location_address' => 'required|string|max:255',
+    ]);
+
+    $booking->update($validated);
+    return redirect()->route('customer.bookings.index')->with('success', 'Request updated successfully!');
+}
+
+public function destroy(Booking $booking)
+{
+    // Mteja anaweza kufuta ikiwa 'pending' AU 'completed'
+    $allowedStatuses = ['pending', 'completed'];
+    abort_if(!in_array($booking->status, $allowedStatuses), 403, 'Unauthorized action.');
+
+    $booking->delete();
+    return redirect()->route('customer.bookings.index')->with('success', 'Booking request removed.');
+}
     
 }

@@ -65,7 +65,10 @@ class Booking extends Model
 
     // ── Status Actions ──
 
-    public function accept(float $price): self
+    /**
+     * Updated to handle acceptance without forcing a price update
+     */
+    public function accept(float $price = 0): self
     {
         $this->update([
             'status'       => 'accepted',
@@ -102,10 +105,9 @@ class Booking extends Model
     {
         return $this->hasOne(Review::class, 'booking_id');
     }
-// Hii inakusaidia kuuliza: $booking->can_view_contact
-public function getCanViewContactAttribute(): bool
-{
-    return in_array($this->status, ['accepted', 'in_progress', 'completed']);
-}
 
+    public function getCanViewContactAttribute(): bool
+    {
+        return in_array($this->status, ['accepted', 'in_progress', 'completed']);
+    }
 }

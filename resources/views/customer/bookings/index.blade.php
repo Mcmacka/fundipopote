@@ -35,7 +35,6 @@
 
     {{-- BOOKINGS CONTENT INFRASTRUCTURE --}}
     @if($bookings->isEmpty())
-        {{-- Empty State (Clean & Minimalist) --}}
         <div class="bg-white rounded-2xl border border-slate-100 p-12 text-center shadow-sm max-w-md mx-auto mt-12">
             <div class="w-12 h-12 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -50,14 +49,11 @@
             </a>
         </div>
     @else
-        {{-- Bookings Stack List --}}
         <div class="space-y-3.5">
             @foreach($bookings as $booking)
                 <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:border-slate-200 transition-all flex flex-col md:flex-row md:items-center justify-between gap-5 group">
                     
-                    {{-- Left Pane: Info Content --}}
                     <div class="flex items-start sm:items-center gap-4 flex-1 min-w-0">
-                        {{-- Avatar Container --}}
                         <div class="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0 border border-slate-800 shadow-sm">
                             @if($booking->technician->technicianProfile && $booking->technician->technicianProfile->profile_photo)
                                 <img src="{{ asset('storage/' . $booking->technician->technicianProfile->profile_photo) }}" class="w-full h-full object-cover">
@@ -66,7 +62,6 @@
                             @endif
                         </div>
                         
-                        {{-- Metadata Group --}}
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <h3 class="font-bold text-slate-900 text-sm tracking-tight truncate">{{ $booking->technician->name }}</h3>
@@ -75,7 +70,6 @@
                                 </span>
                             </div>
                             
-                            {{-- Code & Description Wrapper --}}
                             <div class="flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-1 mt-1">
                                 <div class="flex items-center gap-1 text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
                                     <span>Code:</span>
@@ -89,38 +83,39 @@
                         </div>
                     </div>
 
-                    {{-- Right Pane: Status & Navigation Hub --}}
-                    <div class="flex items-center justify-between md:justify-end gap-6 border-t border-slate-50 pt-3 md:pt-0 md:border-0">
-                        {{-- Dynamic Status Badge --}}
-                        <div>
-                            @switch($booking->status)
-                                @case('pending')
-                                    <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50/60 border border-amber-100 rounded-lg px-2.5 py-1 uppercase tracking-wide">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                        Pending
-                                    </span>
-                                    @break
-                                @case('accepted')
-                                    <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-sky-700 bg-sky-50/60 border border-sky-100 rounded-lg px-2.5 py-1 uppercase tracking-wide">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
-                                        In Progress
-                                    </span>
-                                    @break
-                                @case('completed')
-                                    <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-2.5 py-1 uppercase tracking-wide">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                        Completed
-                                    </span>
-                                    @break
-                                @default
-                                    <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 uppercase tracking-wide">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                        {{ $booking->status }}
-                                    </span>
-                            @endswitch
-                        </div>
+                    <div class="flex items-center justify-between md:justify-end gap-3 border-t border-slate-50 pt-3 md:pt-0 md:border-0">
                         
-                        {{-- Action Button --}}
+                        @switch($booking->status)
+                            @case('pending')
+                                <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50/60 border border-amber-100 rounded-lg px-2.5 py-1 uppercase tracking-wide">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                    Pending
+                                </span>
+                                @break
+                            @case('accepted')
+                                <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-sky-700 bg-sky-50/60 border border-sky-100 rounded-lg px-2.5 py-1 uppercase tracking-wide">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                                    In Progress
+                                </span>
+                                @break
+                            @case('completed')
+                                <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-2.5 py-1 uppercase tracking-wide">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    Completed
+                                </span>
+                                @break
+                        @endswitch
+
+                        {{-- SEHEMU ILIYOONGEZWA YA DELETE --}}
+                        @if(in_array($booking->status, ['pending', 'completed']))
+                            <form action="{{ route('customer.bookings.destroy', $booking->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this booking?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors" title="Delete Booking">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </form>
+                        @endif
+                        
                         <a href="{{ route('customer.bookings.show', $booking->id) }}" 
                            class="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 hover:border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-sm">
                             Manage
@@ -129,7 +124,6 @@
                             </svg>
                         </a>
                     </div>
-
                 </div>
             @endforeach
         </div>

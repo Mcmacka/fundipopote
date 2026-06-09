@@ -119,24 +119,44 @@
       <div class="flex flex-col sm:flex-row gap-5">
 
         {{-- Avatar Container --}}
-<div class="flex-shrink-0 mx-auto sm:mx-0">
-  @if($profile->profile_photo_url)
-    <img src="{{ $profile->profile_photo_url }}" 
-         alt="{{ $profile->user->name }}" 
-         class="w-32 h-32 rounded-2xl object-cover shadow-md">
-  @else
-    {{-- Fallback: Itaonyesha initials kama picha haipo --}}
-    <div class="w-18 h-18 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white text-2xl font-extrabold shadow-md shadow-emerald-500/20">
-      {{ strtoupper(substr($profile->user->name, 0, 2)) }}
-    </div>
-  @endif
-</div>
+        <div class="flex-shrink-0 mx-auto sm:mx-0">
+          @if($profile->profile_photo_url)
+            <img src="{{ $profile->profile_photo_url }}" 
+                 alt="{{ $profile->user->name }}" 
+                 class="w-32 h-32 rounded-2xl object-cover shadow-md">
+          @else
+            <div class="w-18 h-18 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white text-2xl font-extrabold shadow-md shadow-emerald-500/20">
+              {{ strtoupper(substr($profile->user->name, 0, 2)) }}
+            </div>
+          @endif
+        </div>
 
         {{-- Main Info --}}
         <div class="flex-1 min-w-0 text-center sm:text-left">
           <div class="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-3">
             <div>
               <h3 class="text-xl font-bold text-gray-900 tracking-tight">{{ $profile->user->name }}</h3>
+              
+              {{-- STATUS BADGE --}}
+              <div class="mt-2">
+                  @if($profile->isBusy())
+                      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                          <span class="relative flex h-2 w-2">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                          </span>
+                          Currently Busy
+                      </span>
+                  @else
+                      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                          <span class="relative flex h-2 w-2">
+                              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          Available
+                      </span>
+                  @endif
+              </div>
+
               <div class="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-1.5">
                 <span class="px-3 py-1 text-xs font-semibold rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100/50">
                   {{ $profile->category->name }}
@@ -226,7 +246,6 @@
       </div>
     </div>
   @empty
-    {{-- Empty State Container --}}
     <div class="bg-white rounded-3xl border border-gray-100 p-16 text-center shadow-xl shadow-gray-100/40">
       <div class="w-16 h-16 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gray-100">
         <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -264,4 +283,5 @@ function useGPS() {
 }
 </script>
 @endpush
+
 @endsection

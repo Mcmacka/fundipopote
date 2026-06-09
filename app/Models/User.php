@@ -120,4 +120,12 @@ class User extends Authenticatable
                     ->where('expires_at', '>', now())
                     ->exists();
     }
+
+    public function isBusy(): bool
+{
+    // Tunacheki kama kuna kazi yoyote yenye status ya 'accepted' au 'in_progress'
+    return $this->bookingsAsTechnician()
+        ->whereIn('status', ['accepted', 'in_progress'])
+        ->exists();
+}
 }

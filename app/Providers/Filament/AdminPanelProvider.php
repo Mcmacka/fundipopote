@@ -17,6 +17,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Http\Middleware\EnsureUserIsAdmin; // Hakikisha hii ipo
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -27,15 +28,10 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-
-            // ── Force English for the entire admin panel ──
-            
-
             ->colors([
                 'primary' => Color::Emerald,
             ])
             ->brandName('FundiPopote Admin')
-
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -57,9 +53,12 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->authMiddleware([
-                Authenticate::class,
-            ])
-            ->authGuard('web');
+            /// Ndani ya AdminPanelProvider.php -> panel()
+->authMiddleware([
+    Authenticate::class,
+    // Kwa sasa toa EnsureUserIsAdmin hapa, 
+    // tutatumia njia nyingine kuzuia watu wasio admin
+])
+->authGuard('web');
     }
 }

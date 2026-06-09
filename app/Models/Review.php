@@ -18,4 +18,14 @@ class Review extends Model
         'rating',
         'comment',
     ];
+
+    public function technician()
+{
+    return $this->belongsTo(\App\Models\User::class, 'technician_id');
+}
+
+public function customer()
+{
+    return $this->belongsTo(\App\Models\User::class, 'customer_id');
+}
 }
