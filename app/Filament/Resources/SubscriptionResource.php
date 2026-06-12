@@ -10,13 +10,19 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Placeholder;
+use Illuminate\Support\Facades\Storage;
+use Filament\Forms\Components\ViewField;
+use Filament\Forms\Components\Section;
+
 
 class SubscriptionResource extends Resource
 {
     protected static ?string $model = Subscription::class;
     protected static ?string $navigationIcon  = 'heroicon-o-credit-card';
-    protected static ?string $navigationLabel = 'Subscription Payments';
-    protected static ?string $pluralModelLabel = 'Subscription Payments';
+    protected static ?string $navigationLabel = 'Subscription Payments and Document Approvals';
+    protected static ?string $pluralModelLabel = 'Subscription Payments and Document Approvals';
     protected static ?string $modelLabel = 'Subscription Payment';
     protected static ?string $navigationGroup = 'Management';
     protected static ?int    $navigationSort  = 1;
@@ -51,6 +57,44 @@ class SubscriptionResource extends Resource
                     'airtel'   => 'Airtel Money',
                 ])
                 ->required(),
+
+            Forms\Components\Section::make('Technician Documents')
+    ->description('Review the documents before approving the subscription.')
+    ->schema([
+        // Certificate Placeholder
+        Forms\Components\Placeholder::make('certificate_display')
+            ->label('Certificate')
+            ->extraAttributes([
+                'style' => 'background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 15px;'
+            ])
+            ->content(fn ($record) => $record->user->technicianProfile?->certificate_path 
+                ? new \Illuminate\Support\HtmlString('
+                    <div style="display: flex; gap: 10px;">
+                        <a href="'.asset('storage/'.$record->user->technicianProfile->certificate_path).'" target="_blank" 
+                           style="padding: 8px 16px; background: #3b82f6; color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">View</a>
+                        <a href="'.asset('storage/'.$record->user->technicianProfile->certificate_path).'" download 
+                           style="padding: 8px 16px; background: #10b981; color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">Download</a>
+                    </div>')
+                : 'No certificate uploaded'),
+
+        // Residency Letter Placeholder
+        Forms\Components\Placeholder::make('residency_letter_display')
+            ->label('Residency Letter')
+            ->extraAttributes([
+                'style' => 'background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 15px;'
+            ])
+            ->content(fn ($record) => $record->user->technicianProfile?->residency_letter_path 
+                ? new \Illuminate\Support\HtmlString('
+                    <div style="display: flex; gap: 10px;">
+                        <a href="'.asset('storage/'.$record->user->technicianProfile->residency_letter_path).'" target="_blank" 
+                           style="padding: 8px 16px; background: #3b82f6; color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">View</a>
+                        <a href="'.asset('storage/'.$record->user->technicianProfile->residency_letter_path).'" download 
+                           style="padding: 8px 16px; background: #10b981; color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">Download</a>
+                    </div>')
+                : 'No residency letter uploaded'),
+    ])
+    ->collapsible(),
+    
 
             Forms\Components\TextInput::make('amount_paid')
                 ->label('Amount Paid')

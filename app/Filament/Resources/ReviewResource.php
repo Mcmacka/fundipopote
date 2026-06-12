@@ -15,6 +15,7 @@ class ReviewResource extends Resource
     protected static ?string $model = Review::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-star';
+    protected static ?string $navigationGroup = 'Management';
 
     public static function form(Form $form): Form
     {
@@ -70,6 +71,13 @@ class ReviewResource extends Resource
                     ->label('Date')
                     ->dateTime()
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('technician_notes')
+              ->label('Technician Note')
+              ->searchable()
+                 ->limit(50), // Inaongeza hii ili kuonyesha sehemu ya maoni ya fundi kwenye orodha
+
+
             ])
             ->defaultSort('created_at', 'desc')
             ->actions([
@@ -79,6 +87,8 @@ class ReviewResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+
+                
             ]);
     }
 

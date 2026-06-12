@@ -23,6 +23,10 @@ class User extends Authenticatable
         'password',
         'role',
         'is_active',
+        'otp_code',
+        'otp_expires_at',
+        'is_verified',
+        'terms_accepted',
     ];
 
     /**
@@ -42,6 +46,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
             'is_active'         => 'boolean',
+            'is_verified'       => 'boolean',
+            'terms_accepted'    => 'boolean',
         ];
     }
 
@@ -128,4 +134,11 @@ class User extends Authenticatable
         ->whereIn('status', ['accepted', 'in_progress'])
         ->exists();
 }
+public function customerProfile()
+{
+    return $this->hasOne(CustomerProfile::class);
+}
+
+
+
 }

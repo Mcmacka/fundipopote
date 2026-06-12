@@ -79,37 +79,41 @@
       </div>
 
 {{-- KULIA: PROFILE NA SIGN OUT --}}
-      <div class="flex items-center gap-3">
-        @auth
-         <div class="flex items-center gap-2">
-    {{-- Je, ni Technician na ana picha? --}}
-    @if(auth()->user()->isTechnician() && auth()->user()->technicianProfile && auth()->user()->technicianProfile->profile_photo)
-        <img src="{{ asset('storage/' . auth()->user()->technicianProfile->profile_photo) }}" 
-             alt="Profile" 
-             class="w-9 h-9 rounded-full object-cover border border-emerald-200">
-             
-    {{-- Kama ni Customer au Technician asiye na picha, tumia jina (initials) --}}
-    @else
-        <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-semibold border border-emerald-200">
-            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+<div class="flex items-center gap-3">
+    @auth
+        <div class="flex items-center gap-2">
+            @php
+                $profile = auth()->user()->isTechnician() 
+                    ? auth()->user()->technicianProfile 
+                    : auth()->user()->customerProfile;
+                $hasPhoto = $profile && $profile->profile_photo;
+            @endphp
+
+            @if($hasPhoto)
+                <img src="{{ asset('storage/' . $profile->profile_photo) }}" 
+                     alt="Profile" 
+                     class="w-8 h-8 rounded-full object-cover border border-gray-200">
+            @else
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase"
+                     style="background-color: {{ '#' . substr(md5(auth()->user()->name), 0, 6) }};">
+                    {{ substr(auth()->user()->name, 0, 1) }}
+                </div>
+            @endif
+
+            {{-- Jina la user litaonekana pembeni ya picha muda wote --}}
+            <span class="text-sm font-semibold text-gray-700 truncate max-w-[100px]">
+                {{ explode(' ', auth()->user()->name)[0] }}
+            </span>
         </div>
-    @endif
 
-    <span class="text-sm font-medium text-gray-700 hidden sm:block">
-        {{ Str::words(auth()->user()->name, 1, '') }}
-    </span>
+        <form method="POST" action="{{ route('logout') }}" class="hidden md:block border-l border-gray-200 pl-2 ml-1">
+            @csrf
+            <button type="submit" class="text-xs text-gray-400 hover:text-red-500 transition">Sign out</button>
+        </form>
+    @else
+        <a href="{{ route('login') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900">Sign in</a>
+    @endauth
 </div>
-
-            <form method="POST" action="{{ route('logout') }}" class="hidden md:block border-l border-gray-200 pl-2 ml-1">
-              @csrf
-              <button type="submit" class="text-xs text-gray-400 hover:text-red-500 transition">Sign out</button>
-            </form>
-          </div>
-        @else
-          <a href="{{ route('login') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Sign in</a>
-          <a href="{{ route('register') }}" class="btn-primary text-white text-sm font-semibold px-4 py-2 rounded-xl">Get Started</a>
-        @endauth
-      </div>
         
 
     </div>

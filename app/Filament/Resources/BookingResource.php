@@ -9,6 +9,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\Action;
+use Filament\Notifications\Notification;
 
 class BookingResource extends Resource
 {
@@ -39,6 +41,10 @@ class BookingResource extends Resource
             Forms\Components\Textarea::make('description')
                 ->label('Description')
                 ->columnSpanFull(),
+
+            Forms\Components\Textarea::make('technician_notes')
+                ->label('Technician Notes')
+                ->columnSpanFull(),
         ]);
     }
 
@@ -60,9 +66,10 @@ class BookingResource extends Resource
                     ->label('Technician')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('category.name')
-                    ->label('Service')
-                    ->badge(),
+                Tables\Columns\TextColumn::make('technician_notes')
+                    ->label('Technician Notes')
+                    ->limit(50)
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
@@ -75,31 +82,15 @@ class BookingResource extends Resource
                         'rejected'    => 'danger',
                         'cancelled'   => 'danger',
                         default       => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending'     => 'Pending',
-                        'accepted'    => 'Accepted',
-                        'rejected'    => 'Rejected',
-                        'in_progress' => 'In Progress',
-                        'completed'   => 'Completed',
-                        'cancelled'   => 'Cancelled',
-                        default       => $state,
                     }),
-
-                Tables\Columns\TextColumn::make('agreed_price')
-                    ->label('Price')
-                    ->money('TZS')
-                    ->placeholder('—'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Date')
                     ->dateTime('d M Y H:i')
                     ->sortable(),
             ])
-
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->label('Status')
                     ->options([
                         'pending'     => 'Pending',
                         'accepted'    => 'Accepted',
@@ -107,12 +98,32 @@ class BookingResource extends Resource
                         'rejected'    => 'Rejected',
                     ]),
             ])
-
             ->actions([
-                Tables\Actions\ViewAction::make()->label('View'),
-                Tables\Actions\EditAction::make()->label('Edit'),
-            ])
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Action::make('complete_job')
+                    ->label('Complete')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->form([
+                        Forms\Components\Textarea::make('technician_notes')
+                            ->label('Technician Notes')
+                            ->required(),
+                    ])
+                    ->action(function (Booking $record, array $data): void {
+                        $record->update([
+                            'status' => 'completed',
+                            'technician_notes' => $data['technician_notes'],
+                        ]);
 
+                        Notification::make()
+                            ->title('Job completed successfully')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (Booking $record) => $record->status !== 'completed'),
+            ])
             ->defaultSort('created_at', 'desc')
             ->poll('30s');
     }

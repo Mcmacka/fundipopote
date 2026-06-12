@@ -24,7 +24,11 @@ class TechnicianProfile extends Model
         'location_name',
         'service_radius_km',
         'average_rating',
-        'total_reviews',
+        'total_reviews', 
+        'certificate_path', 
+        'residency_letter_path', 
+        'status'
+
     ];
 
     protected function casts(): array

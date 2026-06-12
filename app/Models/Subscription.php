@@ -104,4 +104,10 @@ class Subscription extends Model
 
         return $this;
     }
+
+    public function technicianProfile()
+{
+    // Subscription inamilikiwa na User, na User anamiliki TechnicianProfile
+    return $this->hasOne(\App\Models\TechnicianProfile::class, 'user_id', 'user_id');
+}
 }

@@ -15,25 +15,30 @@ use Illuminate\View\View;
 class ProfileController extends Controller
 {
     public function edit(): View
-    {
-        $user = auth()->user();
-        $profile = $user->technicianProfile;
-        $categories = Category::where('is_active', true)->get();
+{
+    $user = auth()->user();
+    
+    // Tumia withoutGlobalScopes() ili kuweza kuona profile hata kama subscription siyo active
+    $profile = TechnicianProfile::withoutGlobalScopes()
+                                ->where('user_id', $user->id)
+                                ->first();
+                                
+    $categories = Category::where('is_active', true)->get();
 
-        return view('technician.profile.edit', compact('user', 'profile', 'categories'));
-    }
+    return view('technician.profile.edit', compact('user', 'profile', 'categories'));
+}
 
     public function update(Request $request): RedirectResponse
     {
         $user = auth()->user();
         
-        // Tunavuta profile kwa kutumia Eager Loading pattern kupitia user relation
+        // Tunavuta profile iliyopo
         $profile = $user->technicianProfile;
 
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
             'phone'             => 'nullable|string|max:15',
-            'profile_picture'   => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Jina la input kutoka kwenye Blade Form
+            'profile_picture'   => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'category_id'       => 'required|exists:categories,id',
             'bio'               => 'nullable|string|max:500',
             'years_experience'  => 'required|integer|min:0|max:50',
@@ -44,13 +49,13 @@ class ProfileController extends Controller
             'service_radius_km' => 'required|integer|min:1|max:100',
         ]);
 
-        // 1. Update miundombinu ya msingi ya User infrastructure
+        // 1. Update User info
         $user->update([
             'name'  => $validated['name'],
             'phone' => $validated['phone'],
         ]);
 
-        // 2. Maandalizi ya data za meza ya muundo wa TechnicianProfile
+        // 2. Data za Profile
         $profileData = [
             'category_id'       => $validated['category_id'],
             'bio'               => $validated['bio'],
@@ -62,26 +67,26 @@ class ProfileController extends Controller
             'service_radius_km' => $validated['service_radius_km'],
         ];
 
-        // 3. Kuchakata na kusafisha faili la picha kwenye Storage Pipeline
+        // 3. Picha
         if ($request->hasFile('profile_picture')) {
-            
-            // Futa picha ya zamani kwa kutumia uwanja sahihi wa database 'profile_photo'
             if ($profile && $profile->profile_photo && Storage::disk('public')->exists($profile->profile_photo)) {
                 Storage::disk('public')->delete($profile->profile_photo);
             }
-
-            // Hifadhi picha mpya kwenye disk ya public
-            $path = $request->file('profile_picture')->store('profiles', 'public');
-            
-            // MAPENDEKEZO: Hapa tunaiweka path kwenye key ya 'profile_photo' ambayo ipo kwenye $fillable ya Model
-            $profileData['profile_photo'] = $path;
+            $profileData['profile_photo'] = $request->file('profile_picture')->store('profiles', 'public');
         }
 
-        // 4. Kuhifadhi rekodi mpya au kufanya mabadiliko kwenye database
-        TechnicianProfile::updateOrCreate(
-            ['user_id' => $user->id],
-            $profileData
-        );
+        // 4. Hapa ndipo marekebisho yalipo
+       $profile = TechnicianProfile::withoutGlobalScopes()
+                                    ->where('user_id', $user->id)
+                                    ->first();
+
+        if ($profile) {
+            // Update rekodi iliyopo (haitagusa documents za zamani)
+            $profile->update($profileData);
+        } else {
+            // Kama haipo, tengeneza mpya (ila hii mara nyingi haitatokea kama profile ipo)
+            $user->technicianProfile()->create($profileData);
+        }
 
         return redirect()
             ->route('technician.profile.edit')

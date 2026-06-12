@@ -26,30 +26,24 @@ class BookingController extends Controller
         return view('technician.bookings.index', compact('bookings'));
     }
 
-  public function show($id): View
-{
-    // Tafuta Booking kwa kutumia ID, ikikosekana itarudisha 404 (badala ya null error)
-    $booking = Booking::findOrFail($id);
+    public function show($id): View
+    {
+        $booking = Booking::findOrFail($id);
+        $booking = $booking->fresh();
 
-    // Lazimisha Laravel ichote upya data ya booking kutoka database ili kupata update ya sasa
-    $booking = $booking->fresh();
+        $isOwner = $booking->technician_id == auth()->id();
+        $isAccepted = in_array($booking->status, ['accepted', 'in_progress', 'completed']);
 
-    // Sasa angalia ruhusa na data mpya
-    $isOwner = $booking->technician_id == auth()->id();
-    $isAccepted = in_array($booking->status, ['accepted', 'in_progress', 'completed']);
+        if (!$isOwner || !$isAccepted) {
+            abort(403, "Access Denied. Owner: " . ($isOwner ? 'Yes' : 'No') . ", Status: " . $booking->status);
+        }
 
-    if (!$isOwner || !$isAccepted) {
-        // Hapa tunajua sasa kama ni Owner NO au Status ndiyo tatizo
-        abort(403, "Access Denied. Owner: " . ($isOwner ? 'Yes' : 'No') . ", Status: " . $booking->status);
+        $booking->load('customer');
+        return view('technician.bookings.show', compact('booking'));
     }
-
-    $booking->load('customer');
-    return view('technician.bookings.show', compact('booking'));
-}
 
     public function update(Request $request, Booking $booking): RedirectResponse
     {
-        // Ruhusu 'accept' hata kama technician_id bado ni null
         if ($request->status !== 'accepted') {
             abort_if($booking->technician_id != auth()->id(), 403);
         }
@@ -61,7 +55,6 @@ class BookingController extends Controller
 
         switch ($request->status) {
             case 'accepted':
-                // Imepitishwa vigezo 2 pekee (booking na user) ili kuendana na BookingService
                 $this->bookingService->acceptBooking($booking, auth()->user());
                 $message = 'You have accepted the job. Customer contact details are now visible.';
                 break;
@@ -81,13 +74,14 @@ class BookingController extends Controller
         return redirect()->back()->with('success', $message);
     }
 
-    public function complete(Booking $booking): RedirectResponse
-    {
-        abort_if($booking->technician_id != auth()->id(), 403);
+    public function complete(Request $request, Booking $booking): RedirectResponse
+{
+    // Ongeza hii mstari ili kuona kama data inafika
+    dd($request->all()); 
 
-        $this->bookingService->completeBooking($booking, auth()->user());
-        event(new \App\Events\BookingCompleted($booking));
+    abort_if($booking->technician_id != auth()->id(), 403);
+    // ...
+}
 
-        return redirect()->back()->with('success', 'Job is completed successfully!');
-    }
+    
 }

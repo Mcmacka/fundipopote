@@ -1,11 +1,12 @@
 <?php
 
-use App\Http\Middleware\IsAdminMiddleware;
-use App\Http\Middleware\SetLocale;
-use App\Http\Middleware\SubscriptionMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SubscriptionMiddleware;
+use App\Http\Middleware\IsAdminMiddleware;
+use App\Http\Middleware\EnsureUserVerification;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,15 +15,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Apply locale to every web request
         $middleware->web(append: [
             SetLocale::class,
         ]);
 
-        // Custom aliases
         $middleware->alias([
             'subscription.active' => SubscriptionMiddleware::class,
             'is.admin'            => IsAdminMiddleware::class,
+            'verified.user'       => EnsureUserVerification::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

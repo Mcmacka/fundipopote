@@ -86,11 +86,12 @@ class Booking extends Model
         return $this;
     }
 
-    public function complete(): self
+    public function complete(string $notes = null): self
     {
         $this->update([
-            'status'       => 'completed',
-            'completed_at' => now(),
+            'status'           => 'completed',
+            'completed_at'     => now(),
+            'technician_notes' => $notes,
         ]);
         return $this;
     }

@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
+use App\Models\User; // Hakikisha ume-import Model ya User
 
 class ForgotPasswordController extends Controller
 {
@@ -27,17 +28,23 @@ class ForgotPasswordController extends Controller
             'email' => 'required|email|exists:users,email',
         ]);
 
-        // We send the password reset link via Laravel's built-in broker
+        // 1. Tafuta mtumiaji kwa email yake
+        $user = User::where('email', $request->email)->first();
+
+        // 2. Zuia kama mtumiaji huyo ni Admin (Rekebisha 'isAdmin()' kulingana na njia unayotumia kutambua admin)
+        if ($user && $user->isAdmin()) {
+            return back()->withErrors(['email' => 'Password reset is not allowed for administrator accounts.']);
+        }
+
+        // 3. Endelea na logic ya kawaida ya Laravel
         $status = Password::broker()->sendResetLink(
             $request->only('email')
         );
 
-        // If the link was successfully sent, redirect back with success message
         if ($status === Password::RESET_LINK_SENT) {
             return back()->with('status', __($status));
         }
 
-        // If it failed, redirect back with the error log
         return back()->withErrors(['email' => __($status)]);
     }
 }

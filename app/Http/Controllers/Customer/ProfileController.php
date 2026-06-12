@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use App\Models\CustomerProfile;
 
 class ProfileController extends Controller
 {
@@ -44,4 +45,25 @@ class ProfileController extends Controller
 
         return back()->with('success', 'Password updated successfully!');
     }
+
+   public function updatePhoto(Request $request) {
+    $request->validate(['profile_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048']);
+    
+    $user = auth()->user();
+    
+    // Futa picha ya zamani kama ipo
+    $oldProfile = $user->customerProfile;
+    if ($oldProfile && $oldProfile->profile_photo) {
+        \Illuminate\Support\Facades\Storage::disk('public')->delete($oldProfile->profile_photo);
+    }
+    
+    $path = $request->file('profile_photo')->store('profiles', 'public');
+
+    $user->customerProfile()->updateOrCreate(
+        ['user_id' => $user->id],
+        ['profile_photo' => $path]
+    );
+
+    return back()->with('success', 'Profile picture updated!');
+}
 }

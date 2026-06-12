@@ -5,12 +5,14 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\VerificationController;
 
 // Controllers za Mteja (Customer)
 use App\Http\Controllers\Customer\BookingController as CustomerBookingController;
 use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\SearchController;
 use App\Http\Controllers\Customer\ProfileController as CustomerProfileController;
+
 
 // Controllers za Fundi (Technician)
 use App\Http\Controllers\Technician\BookingController as TechnicianBookingController;
@@ -41,7 +43,7 @@ Route::get('/language/{locale}', [LanguageController::class, 'switch'])
 // ══════════════════════════════════════
 // CUSTOMER ROUTES
 // ══════════════════════════════════════
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified.user'])
     ->prefix('app')
     ->name('customer.')
     ->group(function () {
@@ -51,6 +53,8 @@ Route::middleware(['auth', 'verified'])
         
         Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [CustomerProfileController::class, 'update'])->name('profile.update');
+        // Ndani ya group ya 'customer.'
+Route::patch('/profile/photo', [CustomerProfileController::class, 'updatePhoto'])->name('profile.photo.update');
 
         Route::get('/bookings', [CustomerBookingController::class, 'index'])->name('bookings.index');
         Route::get('/bookings/create', [CustomerBookingController::class, 'create'])->name('bookings.create');
@@ -69,7 +73,7 @@ Route::middleware(['auth', 'verified'])
 // ══════════════════════════════════════
 // TECHNICIAN ROUTES
 // ══════════════════════════════════════
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified.user'])
     ->prefix('fundi')
     ->name('technician.')
     ->group(function () {
@@ -108,6 +112,18 @@ Route::middleware('guest')->group(function () {
     Route::post('reset-password', [ResetPasswordController::class, 'store'])->name('password.update');
 });
 
+
+
+
+// ══════════════════════════════════════
+Route::middleware(['auth'])->group(function () {
+    Route::get('/otp/verify', [VerificationController::class, 'showOtpForm'])->name('otp.verify.form');
+    Route::post('/otp/verify', [VerificationController::class, 'verifyOtp'])->name('otp.verify');
+    
+    Route::get('/terms', [VerificationController::class, 'showTerms'])->name('terms.show');
+    Route::post('/terms', [VerificationController::class, 'acceptTerms'])->name('terms.accept');
+}); // Hapa ndipo ilipokuwa inakosekana
+
 // ══════════════════════════════════════
 // REDIRECT LOGIC
 // ══════════════════════════════════════
@@ -119,6 +135,8 @@ Route::get('/dashboard', function () {
         return redirect()->route('customer.search');
     }
     return redirect()->route('login');
-})->middleware(['auth', 'verified']);
+})->middleware(['auth', 'verified.user'])->name('dashboard'); // <--- HII NDIO ILIKUWA INAKOSEKANA
+
+
 
 require __DIR__.'/auth.php';
