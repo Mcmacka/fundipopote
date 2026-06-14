@@ -71,14 +71,7 @@ class SubscriptionResource extends Resource
                 ->required(),
 
 
-                Forms\Components\FileUpload::make('payment_receipt')
-    ->label('Payment Receipt')
-    ->image()
-    ->disk('public')
-    ->directory('subscriptions/receipts')
-    ->required()
-    ->columnSpanFull(),
-
+                
             Forms\Components\Section::make('Technician Documents')
                 ->description('Review the documents before approving the subscription.')
                 ->visible(fn ($record) => $record !== null) // Hii inazuia kosa la null kwenye ukurasa wa Create
@@ -183,7 +176,7 @@ class SubscriptionResource extends Resource
             $record->approve(auth()->user());
             \Filament\Notifications\Notification::make()
                 ->title('Subscription Approved')
-                ->body('Subscription sasa inafanya kazi (Active).')
+                ->body('Subscription is now active.')
                 ->success()
                 ->send();
         }
