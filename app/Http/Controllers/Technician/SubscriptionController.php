@@ -25,30 +25,52 @@ class SubscriptionController extends Controller
         ));
     }
 
-    public function store(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'plan_type'       => 'required|in:basic,standard,premium',
-            'mpesa_reference' => 'required|string|max:50',
-            'payment_method'  => 'required|in:mpesa,tigopesa,airtel',
-        ]);
+public function store(Request $request): RedirectResponse
+{
+    $user = auth()->user();
 
-        $amount = Subscription::$planPrices[$validated['plan_type']];
+    // 1. Validation
+    $validated = $request->validate([
+        'plan_type'       => 'required|in:basic,standard,premium',
+        'payment_method'  => 'required',
+        'payment_receipt' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
 
-        Subscription::create([
-            'user_id'         => auth()->id(),
-            'plan_type'       => $validated['plan_type'],
-            'amount_paid'     => $amount,
-            'mpesa_reference' => $validated['mpesa_reference'],
-            'payment_method'  => $validated['payment_method'],
-            'status'          => 'pending_approval',
-        ]);
+    // 2. Kuzuia malipo mara mbili (Kama tayari ana ombi la pending au queued)
+    $hasExistingRequest = \App\Models\Subscription::where('user_id', $user->id)
+        ->whereIn('status', ['pending_approval', 'queued'])
+        ->exists();
 
-        return redirect()
-            ->route('technician.subscription.index')
-            ->with(
-                'success',
-                'Your payment has been received! The admin will review it shortly.'
-            );
+    if ($hasExistingRequest) {
+        return back()->withErrors(['error' => 'you already have a pending subscription request.']);
     }
+
+    // 3. Weka bei
+    $prices = Subscription::$planPrices;
+    $amount = $prices[$validated['plan_type']];
+
+    // 4. Hifadhi faili
+    $path = $request->file('payment_receipt')->store('subscriptions/receipts', 'public');
+
+    // 5. Logic ya "Active" vs "Queued"
+    // Kama ana subscription inayofanya kazi (active), hii mpya iwe 'queued'
+    // Vinginevyo, iwe 'pending_approval'
+    $status = $user->activeSubscription ? 'queued' : 'pending_approval';
+
+    // 6. Hifadhi kwenye database
+    \App\Models\Subscription::create([
+        'user_id'         => $user->id,
+        'plan_type'       => $validated['plan_type'],
+        'amount_paid'     => $amount,
+        'payment_receipt' => $path,
+        'payment_method'  => $validated['payment_method'],
+        'status'          => $status,
+    ]);
+
+    $message = ($status === 'queued') 
+        ? 'your request has been submitted and is queued for approval.' 
+        : 'your request has been submitted and is pending approval.';
+
+    return redirect()->route('technician.subscription.index')->with('success', $message);
+}
 }

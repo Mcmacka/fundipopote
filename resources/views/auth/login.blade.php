@@ -49,19 +49,9 @@
         <h1 class="text-3xl font-bold text-emerald-600 tracking-wide mb-2">Sign In</h1>
         <p class="text-gray-400 text-xs tracking-wide mb-6">Tanzania Service Marketplace</p>
         
-        <div class="flex justify-center gap-3 mb-6">
-          <a href="#" class="w-9 h-9 border border-gray-200 rounded-full flex items-center justify-center text-gray-500 transition-colors hover:bg-emerald-600 hover:text-white hover:border-emerald-600">
-            <i class="fa-brands fa-facebook-f text-sm"></i>
-          </a>
-          <a href="#" class="w-9 h-9 border border-gray-200 rounded-full flex items-center justify-center text-gray-500 transition-colors hover:bg-emerald-600 hover:text-white hover:border-emerald-600">
-            <i class="fa-brands fa-google text-sm"></i>
-          </a>
-          <a href="#" class="w-9 h-9 border border-gray-200 rounded-full flex items-center justify-center text-gray-500 transition-colors hover:bg-emerald-600 hover:text-white hover:border-emerald-600">
-            <i class="fa-brands fa-linkedin-in text-sm"></i>
-          </a>
-        </div>
+       
 
-        <p class="text-xs text-gray-400 uppercase tracking-wider mb-6">or use your email account:</p>
+        <p class="text-xs text-gray-400 uppercase tracking-wider mb-6">use your email account or phone number:</p>
 
         @if ($errors->any())
           <div class="bg-red-50 border border-red-100 text-red-700 text-left text-sm rounded-xl p-3 mb-4 flex items-start gap-2">
@@ -76,11 +66,11 @@
           <div class="relative flex items-center">
             <i class="fa-regular fa-envelope absolute left-4 text-gray-400 pointer-events-none text-sm"></i>
             <input 
-              type="email" 
-              name="email"
-              value="{{ old('email') }}" 
+              type="text" 
+              name="login"
+              value="{{ old('login') }}" 
               required
-              placeholder="email@example.com"
+              placeholder="email@example.com or phone number"
               class="w-full pl-11 pr-4 py-3 bg-gray-100 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/30 transition-all border border-transparent focus:border-emerald-500"
             />
           </div>

@@ -12,11 +12,11 @@ class DatabaseSeeder extends Seeder
     {
         // Create default admin
        User::updateOrCreate(
-    ['email' => 'admin@fundipopote.co.tz'], // The search criteria
+    ['email' => 'adminfundipopote@gmail.com'], // The search criteria
     [
         'name' => 'Admin FundiPopote',
-        'phone' => '+255700000001',
-        'password' => bcrypt('admin@123'),
+        'phone' => '+255700000002',
+        'password' => bcrypt('admin@1234'),
         'role' => 'admin',
         'is_active' => 1,
         'email_verified_at' => now(),

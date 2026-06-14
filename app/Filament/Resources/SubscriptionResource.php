@@ -4,18 +4,15 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SubscriptionResource\Pages;
 use App\Models\Subscription;
+use App\Models\TechnicianProfile;
+use App\Scopes\ActiveSubscriptionScope;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Placeholder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
-use Filament\Forms\Components\ViewField;
-use Filament\Forms\Components\Section;
-
 
 class SubscriptionResource extends Resource
 {
@@ -34,7 +31,9 @@ class SubscriptionResource extends Resource
                 ->relationship('user', 'name')
                 ->searchable()
                 ->label('Technician')
-                ->required(),
+                ->required()
+                ->reactive() // MUHIMU: Hii inamruhusu Admin kuchagua na inafanya form iwe hai
+                ->afterStateUpdated(fn ($set) => $set('receipt_display', null)),
 
             Forms\Components\Select::make('plan_type')
                 ->label('Plan')
@@ -45,9 +44,22 @@ class SubscriptionResource extends Resource
                 ])
                 ->required(),
 
-            Forms\Components\TextInput::make('mpesa_reference')
-                ->label('Transaction Number (M-Pesa / Tigo / Airtel)')
-                ->required(),
+            // Section hii inaonekana TU wakati wa EDIT, kuzuia error kwenye CREATE
+            Forms\Components\Section::make('Current Receipt')
+                ->visible(fn ($record) => $record && $record->payment_receipt)
+                ->schema([
+                    Forms\Components\Placeholder::make('receipt_display')
+                        ->label('')
+                        ->content(function ($record) {
+                            $url = asset('storage/' . $record->payment_receipt);
+                            return new \Illuminate\Support\HtmlString('
+                                <div style="display: flex; gap: 10px;">
+                                    <a href="'.$url.'" target="_blank" style="padding: 8px 16px; background: #3b82f6; color: white; border-radius: 6px; text-decoration: none;">View</a>
+                                    <a href="'.$url.'" download style="padding: 8px 16px; background: #10b981; color: white; border-radius: 6px; text-decoration: none;">Download</a>
+                                </div>
+                            ');
+                        }),
+                ]),
 
             Forms\Components\Select::make('payment_method')
                 ->label('Payment Method')
@@ -58,43 +70,43 @@ class SubscriptionResource extends Resource
                 ])
                 ->required(),
 
-            Forms\Components\Section::make('Technician Documents')
-    ->description('Review the documents before approving the subscription.')
-    ->schema([
-        // Certificate Placeholder
-        Forms\Components\Placeholder::make('certificate_display')
-            ->label('Certificate')
-            ->extraAttributes([
-                'style' => 'background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 15px;'
-            ])
-            ->content(fn ($record) => $record->user->technicianProfile?->certificate_path 
-                ? new \Illuminate\Support\HtmlString('
-                    <div style="display: flex; gap: 10px;">
-                        <a href="'.asset('storage/'.$record->user->technicianProfile->certificate_path).'" target="_blank" 
-                           style="padding: 8px 16px; background: #3b82f6; color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">View</a>
-                        <a href="'.asset('storage/'.$record->user->technicianProfile->certificate_path).'" download 
-                           style="padding: 8px 16px; background: #10b981; color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">Download</a>
-                    </div>')
-                : 'No certificate uploaded'),
 
-        // Residency Letter Placeholder
-        Forms\Components\Placeholder::make('residency_letter_display')
-            ->label('Residency Letter')
-            ->extraAttributes([
-                'style' => 'background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 15px;'
-            ])
-            ->content(fn ($record) => $record->user->technicianProfile?->residency_letter_path 
-                ? new \Illuminate\Support\HtmlString('
-                    <div style="display: flex; gap: 10px;">
-                        <a href="'.asset('storage/'.$record->user->technicianProfile->residency_letter_path).'" target="_blank" 
-                           style="padding: 8px 16px; background: #3b82f6; color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">View</a>
-                        <a href="'.asset('storage/'.$record->user->technicianProfile->residency_letter_path).'" download 
-                           style="padding: 8px 16px; background: #10b981; color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">Download</a>
-                    </div>')
-                : 'No residency letter uploaded'),
-    ])
-    ->collapsible(),
-    
+                Forms\Components\FileUpload::make('payment_receipt')
+    ->label('Payment Receipt')
+    ->image()
+    ->disk('public')
+    ->directory('subscriptions/receipts')
+    ->required()
+    ->columnSpanFull(),
+
+            Forms\Components\Section::make('Technician Documents')
+                ->description('Review the documents before approving the subscription.')
+                ->visible(fn ($record) => $record !== null) // Hii inazuia kosa la null kwenye ukurasa wa Create
+                ->schema([
+                    Forms\Components\Placeholder::make('certificate_display')
+                        ->label('Certificate')
+                        ->content(function ($record) {
+                            if (!$record || !$record->user_id) return 'No technician selected';
+                            
+                            $profile = TechnicianProfile::withoutGlobalScope(ActiveSubscriptionScope::class)
+                                ->where('user_id', $record->user_id)->first();
+                                
+                            return ($profile && $profile->certificate_path) 
+                                ? new \Illuminate\Support\HtmlString('<div style="display: flex; gap: 10px;"><a href="'.asset('storage/'.$profile->certificate_path).'" target="_blank" style="padding: 8px 16px; background: #3b82f6; color: white; border-radius: 6px; text-decoration: none;">View</a><a href="'.asset('storage/'.$profile->certificate_path).'" download style="padding: 8px 16px; background: #10b981; color: white; border-radius: 6px; text-decoration: none;">Download</a></div>')
+                                : 'No certificate uploaded';
+                        }),
+                    Forms\Components\Placeholder::make('residency_letter_display')
+                        ->label('Residency Letter')
+                        ->content(function ($record) {
+                            if (!$record || !$record->user_id) return 'No technician selected';
+
+                            $profile = TechnicianProfile::withoutGlobalScope(ActiveSubscriptionScope::class)
+                                ->where('user_id', $record->user_id)->first();
+                            return ($profile && $profile->residency_letter_path) 
+                                ? new \Illuminate\Support\HtmlString('<div style="display: flex; gap: 10px;"><a href="'.asset('storage/'.$profile->residency_letter_path).'" target="_blank" style="padding: 8px 16px; background: #3b82f6; color: white; border-radius: 6px; text-decoration: none;">View</a><a href="'.asset('storage/'.$profile->residency_letter_path).'" download style="padding: 8px 16px; background: #10b981; color: white; border-radius: 6px; text-decoration: none;">Download</a></div>')
+                                : 'No residency letter uploaded';
+                        }),
+                ])->collapsible(),
 
             Forms\Components\TextInput::make('amount_paid')
                 ->label('Amount Paid')
@@ -109,7 +121,9 @@ class SubscriptionResource extends Resource
                     'active'           => 'Active (Approved)',
                     'rejected'         => 'Rejected',
                     'expired'          => 'Expired',
+                    'queued'           => 'Queued (Waiting)',
                 ])
+                ->default('pending_approval')
                 ->required(),
 
             Forms\Components\Textarea::make('admin_notes')
@@ -118,139 +132,64 @@ class SubscriptionResource extends Resource
         ]);
     }
 
-    public static function table(Table $table): Table
+    public static function getEloquentQuery(): Builder
     {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label('Technician')
-                    ->searchable()
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('plan_type')
-                    ->label('Plan')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'premium'  => 'success',
-                        'standard' => 'info',
-                        default    => 'gray',
-                    }),
-
-                Tables\Columns\TextColumn::make('mpesa_reference')
-                    ->label('Payment Ref.')
-                    ->copyable()
-                    ->searchable(),
-
-                Tables\Columns\TextColumn::make('payment_method')
-                    ->label('Method')
-                    ->badge(),
-
-                Tables\Columns\TextColumn::make('amount_paid')
-                    ->label('Amount')
-                    ->money('TZS')
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'active'           => 'success',
-                        'pending_approval' => 'warning',
-                        'rejected'         => 'danger',
-                        'expired'          => 'danger',
-                        default            => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'active'           => 'Active',
-                        'pending_approval' => 'Pending',
-                        'rejected'         => 'Rejected',
-                        'expired'          => 'Expired',
-                        default            => $state,
-                    }),
-
-                Tables\Columns\TextColumn::make('expires_at')
-                    ->label('Expires At')
-                    ->dateTime('d M Y')
-                    ->sortable()
-                    ->placeholder('—'),
-
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Date')
-                    ->dateTime('d M Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-
-            ->filters([
-                Tables\Filters\SelectFilter::make('status')
-                    ->label('Status')
-                    ->options([
-                        'pending_approval' => 'Pending Approval',
-                        'active'           => 'Active',
-                        'rejected'         => 'Rejected',
-                        'expired'          => 'Expired',
-                    ]),
-
-                Tables\Filters\SelectFilter::make('plan_type')
-                    ->label('Plan')
-                    ->options([
-                        'basic'    => 'Basic',
-                        'standard' => 'Standard',
-                        'premium'  => 'Premium',
-                    ]),
-            ])
-
-            ->actions([
-                Tables\Actions\Action::make('approve')
-                    ->label('Approve')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible(fn (Subscription $record) => $record->isPendingApproval())
-                    ->requiresConfirmation()
-                    ->modalHeading('Approve Payment')
-                    ->modalDescription('Are you sure you want to approve this payment?')
-                    ->action(function (Subscription $record) {
-                        $record->approve(auth()->user());
-
-                        Notification::make()
-                            ->title('Payment approved!')
-                            ->body("Technician {$record->user->name} can now receive customers.")
-                            ->success()
-                            ->send();
-                    }),
-
-                Tables\Actions\Action::make('reject')
-                    ->label('Reject')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->visible(fn (Subscription $record) => $record->isPendingApproval())
-                    ->form([
-                        Forms\Components\Textarea::make('reason')
-                            ->label('Reason for Rejection')
-                            ->required()
-                            ->placeholder('Write the reason here...'),
-                    ])
-                    ->action(function (Subscription $record, array $data) {
-                        $record->reject(auth()->user(), $data['reason']);
-
-                        Notification::make()
-                            ->title('Payment rejected.')
-                            ->warning()
-                            ->send();
-                    }),
-
-                Tables\Actions\EditAction::make()->label('Edit'),
-                Tables\Actions\ViewAction::make()->label('View'),
-            ])
-
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ])
-
-            ->defaultSort('created_at', 'desc');
+        return parent::getEloquentQuery()->with(['user.technicianProfile' => function ($query) {
+            $query->withoutGlobalScope(ActiveSubscriptionScope::class);
+        }]);
     }
+
+   public static function table(Table $table): Table
+{
+    return $table
+        ->columns([
+            Tables\Columns\TextColumn::make('user.name')->label('Technician')->searchable()->sortable(),
+            Tables\Columns\TextColumn::make('plan_type')->label('Plan')->badge(),
+            // Nimeondoa ImageColumn hapa ili kuondoa ile loading
+            Tables\Columns\TextColumn::make('payment_method')->label('Method')->badge(),
+            Tables\Columns\TextColumn::make('amount_paid')->label('Amount')->money('TZS')->sortable(),
+            Tables\Columns\TextColumn::make('status')->label('Status')->badge(),
+        ])
+        ->actions([
+            // Hizi ndizo Action za View na Download (Sawa na zile za kwenye Documents)
+            
+
+           Tables\Actions\Action::make('approve')
+    ->label('Approve')
+    ->icon('heroicon-o-check-circle')
+    ->color('success')
+    // Sasa inaonekana kama ni 'pending_approval' AU 'queued'
+    ->visible(fn (Subscription $record) => in_array($record->status, ['pending_approval', 'queued']))
+    ->requiresConfirmation()
+    ->action(function (Subscription $record) {
+        $user = $record->user;
+
+        // 1. Angalia kama kuna subscription nyingine iliyo active
+        $hasActive = \App\Models\Subscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->where('expires_at', '>', now())
+            ->exists();
+
+        if ($hasActive) {
+            // Kama ipo, hii mpya iwe 'queued' tu
+            $record->update(['status' => 'queued']);
+            \Filament\Notifications\Notification::make()
+                ->title('Subscription Queued')
+                ->body('user has already an active subscription (queued) its planned to start later.')
+                ->success()
+                ->send();
+        } else {
+            // Kama hakuna, i-approve moja kwa moja
+            $record->approve(auth()->user());
+            \Filament\Notifications\Notification::make()
+                ->title('Subscription Approved')
+                ->body('Subscription sasa inafanya kazi (Active).')
+                ->success()
+                ->send();
+        }
+    }),
+        ]);
+}
 
     public static function getPages(): array
     {
@@ -260,15 +199,5 @@ class SubscriptionResource extends Resource
             'edit'   => Pages\EditSubscription::route('/{record}/edit'),
             'view'   => Pages\ViewSubscription::route('/{record}'),
         ];
-    }
-
-    public static function getNavigationBadge(): ?string
-    {
-        return (string) static::getModel()::where('status', 'pending_approval')->count() ?: null;
-    }
-
-    public static function getNavigationBadgeColor(): ?string
-    {
-        return 'warning';
     }
 }

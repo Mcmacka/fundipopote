@@ -15,39 +15,43 @@ class AuthenticatedSessionController extends Controller
         return view('auth.login');
     }
 
-    public function store(Request $request): RedirectResponse
-    {
-        $credentials = $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required',
-        ]);
+   public function store(Request $request): RedirectResponse
+{
+    // 1. Validating input ya 'login' (email au phone)
+    $request->validate([
+        'login'    => 'required|string',
+        'password' => 'required',
+    ]);
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
-            return back()->withErrors([
-                'email' => 'email or password is not correct check again.',
-            ])->onlyInput('email');
-        }
+    // 2. Kuamua kama ni email au phone
+    $loginValue = $request->input('login');
+    
+    // Angalia kama input ina '@' (kama ndio, tunachukulia ni email)
+    $field = filter_var($loginValue, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
-        $request->session()->regenerate();
-
-        $user = Auth::user();
-
-        // LOGIC YA REDIRECT KWA FUNDI
-        if ($user->role === 'technician') {
-            // Kama ana subscription inayofanya kazi, mpeleke Dashboard
-            if ($user->hasActiveSubscription()) {
-                return redirect()->route('technician.dashboard');
-            }
-            // Kama hana, mpeleke kwenye page ya malipo
-            return redirect()->route('technician.subscription.index');
-        }
-
-        // REDIRECT KWA ROLES NYINGINE
-        return match ($user->role) {
-            'admin' => redirect()->to('/admin'),
-            default => redirect()->route('customer.search'),
-        };
+    // 3. Jaribu kulogin (Auth::attempt inahitaji array ya credentials)
+    if (! Auth::attempt([$field => $loginValue, 'password' => $request->password], $request->boolean('remember'))) {
+        return back()->withErrors([
+            'login' => 'The provided credentials do not match our records.',
+        ])->onlyInput('login');
     }
+
+    $request->session()->regenerate();
+
+    $user = Auth::user();
+
+    // Logic ya redirect kwa role husika
+    if ($user->role === 'technician') {
+        return $user->hasActiveSubscription() 
+            ? redirect()->route('technician.dashboard') 
+            : redirect()->route('technician.subscription.index');
+    }
+
+    return match ($user->role) {
+        'admin' => redirect()->to('/admin'),
+        default => redirect()->route('customer.search'),
+    };
+}
 
     public function destroy(Request $request): RedirectResponse
     {

@@ -22,6 +22,7 @@ class RegisteredUserController extends Controller
             'email'    => 'required|email|unique:users',
             'phone'    => 'nullable|string|max:15',
             'role'     => 'required|in:technician,customer',
+            'category_id' => ['required', 'exists:categories,id'],
             'password' => 'required|min:8|confirmed',
             'certificate'      => 'required_if:role,technician|file|mimes:pdf,jpg,png|max:2048',
             'residency_letter' => 'required_if:role,technician|file|mimes:pdf,jpg,png|max:2048',
@@ -48,7 +49,7 @@ class RegisteredUserController extends Controller
             $letterPath = $request->file('residency_letter')->store('technicians/letters', 'public');
 
             $user->technicianProfile()->create([
-                'category_id'           => 1, // Imeongezwa ili kuzuia error ya 1364
+                'category_id'           => $request->category_id, // Imeongezwa ili kuzuia error ya 1364
                 'certificate_path'      => $certPath,
                 'residency_letter_path' => $letterPath,
                 'status'                => 'pending',

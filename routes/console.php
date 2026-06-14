@@ -1,14 +1,31 @@
 <?php
 
 use Illuminate\Support\Facades\Schedule;
+use App\Models\Subscription;
+use Carbon\Carbon;
 
-/**
- * Scheduled Commands
- *
- * Make sure the scheduler is running on your server:
- *   Windows Task Scheduler: php artisan schedule:run (every minute)
- *   Linux cron: * * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
- */
+Schedule::call(function () {
+    // 1. Tafuta subscription zote zilizokwisha muda wake (active -> expired)
+    Subscription::where('status', 'active')
+        ->where('expires_at', '<=', Carbon::now())
+        ->update(['status' => 'expired']);
 
-// Expire subscriptions that have passed their expires_at date
-Schedule::command('subscriptions:expire')->daily()->at('00:05');
+    // 2. Tafuta subscription zilizokuwa 'queued' na uzifanye 'active'
+    // Tunachukua ile ya kwanza iliyokuwa queued kwa kila user
+    $queuedSubscriptions = Subscription::where('status', 'queued')
+        ->orderBy('created_at', 'asc')
+        ->get();
+
+    foreach ($queuedSubscriptions as $sub) {
+        $activeCheck = Subscription::where('user_id', $sub->user_id)
+            ->where('status', 'active')
+            ->exists();
+
+        if (!$activeCheck) {
+            $sub->update([
+                'status' => 'active',
+                'expires_at' => Carbon::now()->addDays($sub->getPlanDuration())
+            ]);
+        }
+    }
+})->daily(); // Hii itakimbia kila siku saa 00:00

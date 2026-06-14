@@ -11,9 +11,7 @@
         <h3>3. User Responsibilities</h3>
         <p>You agree to provide accurate information during registration and maintain the confidentiality of your account. You are prohibited from using the system for any illegal activities or fraudulent bookings.</p>
 
-        <h3>4. Payments and Refunds</h3>
-        <p>All payments made through the platform are subject to our payment policy. Service fees are non-refundable once the work has been commenced by the technician, unless otherwise stated in our specific refund policy.</p>
-
+        
         <h3>5. Limitation of Liability</h3>
         <p>FundiPopote shall not be held liable for any damages, losses, or disputes arising from the performance of services by technicians. We encourage users to verify technician credentials before booking.</p>
 

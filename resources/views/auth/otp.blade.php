@@ -10,7 +10,12 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         text-align: center;
         font-family: Arial, sans-serif;
+        justify-content: center;
+        align-items: center;
     }
+
+
+
 
     .otp-input {
         width: 45px;
@@ -36,6 +41,7 @@
         font-size: 16px;
         margin-top: 20px;
     }
+
 </style>
 
 

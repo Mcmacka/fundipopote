@@ -84,6 +84,19 @@
           </div>
 
           <div id="technician-fields" class="space-y-3.5" style="display: {{ old('role') == 'technician' ? 'block' : 'none' }};">
+            <div class="relative flex items-center">
+                <i class="fa-solid fa-list absolute left-4 text-gray-400 pointer-events-none text-sm"></i>
+                <select name="category_id" class="w-full pl-11 pr-10 py-2.5 bg-gray-100 rounded-xl text-sm text-gray-700 appearance-none focus:outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/30 transition-all border border-transparent focus:border-emerald-500">
+                    <option value="">-- Select Service Category --</option>
+                    @foreach(\App\Models\Category::all() as $category)
+                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
+                    @endforeach
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400 text-xs"><i class="fa-solid fa-chevron-down"></i></div>
+            </div>
+
             <div class="relative flex flex-col">
               <label class="text-xs text-gray-500 ml-1 mb-1">Professional Certificate</label>
               <input type="file" name="certificate" class="w-full p-2 bg-gray-100 rounded-xl text-sm text-gray-700 border border-transparent focus:bg-white transition-all">

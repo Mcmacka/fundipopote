@@ -38,10 +38,11 @@
         @endif
     </div>
 
-    {{-- Plan Selection --}}
+    {{-- Plan Selection & Payment Form --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-5">Select a New Plan</h2>
-        <form method="POST" action="{{ route('technician.subscription.store') }}">
+        
+        <form method="POST" action="{{ route('technician.subscription.store') }}" enctype="multipart/form-data">
             @csrf
 
             <div class="grid grid-cols-3 gap-4 mb-6">
@@ -81,20 +82,17 @@
                     @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Reference Number</label>
-                    <input type="text" name="mpesa_reference" value="{{ old('mpesa_reference') }}"
-                        placeholder="Example: QK7ABCD123" required maxlength="50"
-                        class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
-                    @error('mpesa_reference')
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Upload Payment Receipt</label>
+                    <input type="file" name="payment_receipt" accept="image/*" required 
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
+                    @error('payment_receipt')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
 
             <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5 text-sm text-blue-700">
-                📱 <strong>How to pay:</strong> Send the amount to number
-                <strong>0712 345 678</strong> (FundiPopote). Then enter the transaction reference above.
-                Admin will verify and approve your request.
+                📱 <strong>How to pay:</strong> Send the amount to number <strong>0712 345 678</strong> (FundiPopote). Then upload your payment receipt photo above. Admin will verify and approve your request.
             </div>
 
             <button type="submit"
@@ -113,13 +111,20 @@
             <div class="flex justify-between items-center py-3 border-b border-gray-50 last:border-0">
                 <div>
                     <p class="font-medium text-gray-800">{{ ucfirst($sub->plan_type) }}</p>
-                    <p class="text-xs text-gray-400">Ref: {{ $sub->mpesa_reference }} · {{ $sub->created_at->format('d M Y') }}</p>
+                    <p class="text-xs text-gray-400">
+                        @if($sub->payment_receipt)
+                            <a href="{{ asset('storage/' . $sub->payment_receipt) }}" target="_blank" class="text-emerald-600 hover:underline font-bold">View Receipt</a>
+                        @else
+                            No Receipt
+                        @endif
+                        · {{ $sub->created_at->format('d M Y') }}
+                    </p>
                 </div>
                 <span class="text-xs px-3 py-1 rounded-full font-medium
                     {{ $sub->status === 'active'           ? 'bg-emerald-50 text-emerald-700' : '' }}
-                    {{ $sub->status === 'pending_approval' ? 'bg-amber-50 text-amber-700'    : '' }}
-                    {{ $sub->status === 'rejected'         ? 'bg-red-50 text-red-600'        : '' }}
-                    {{ $sub->status === 'expired'          ? 'bg-gray-100 text-gray-500'     : '' }}">
+                    {{ $sub->status === 'pending_approval' ? 'bg-amber-50 text-amber-700'     : '' }}
+                    {{ $sub->status === 'rejected'         ? 'bg-red-50 text-red-600'         : '' }}
+                    {{ $sub->status === 'expired'          ? 'bg-gray-100 text-gray-500'      : '' }}">
                     {{ match($sub->status) {
                         'active'           => 'Active',
                         'pending_approval' => 'Pending',

@@ -77,14 +77,25 @@
                            placeholder="+255 712 345 678"
                            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
                 </div>
+                
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">
-                        ID Number
-                    </label>
-                    <input type="text" name="id_number" value="{{ old('id_number', $profile?->id_number) }}"
-                           placeholder="19XXXXXXXXX"
-                           class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
-                </div>
+    <label class="block text-sm font-medium text-slate-700 mb-1">
+        ID Number <span class="text-slate-400 font-normal">(20 digits)</span>
+    </label>
+    <input type="text" name="id_number" 
+           value="{{ old('id_number', $profile?->id_number) }}"
+           placeholder="19XXXXXXXXXXXXX" 
+           maxlength="20" 
+           pattern="\d{20}" 
+           title="ID number must be exactly 20 digits"
+           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+           class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+    @error('id_number')
+        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
+
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">
                         Experience (Years) <span class="text-red-500">*</span>
@@ -211,13 +222,8 @@
                 Back to Dashboard
             </a>
         </div>
-    </form>
 
-
-  
-</div>
-
-{{-- Section 4: Password Update --}}
+        {{-- Section 4: Password Update --}}
 <div class="bg-white rounded-2xl border border-slate-100 p-6 mb-8">
     <h2 class="text-base font-semibold text-slate-800 mb-4">Security Settings</h2>
     
@@ -251,6 +257,8 @@
     </form>
 </div>
 
+
+        
     {{-- Profile Preview (As Customers See It) --}}
     @if($profile)
     <div class="mt-8 bg-white rounded-2xl border border-slate-100 p-5">
@@ -288,6 +296,14 @@
     @endif
 
 </div>
+
+    </form>
+
+
+  
+</div>
+
+
 
 @push('scripts')
 <script>
