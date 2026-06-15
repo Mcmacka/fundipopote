@@ -30,7 +30,8 @@ return new class extends Migration
                 'rejected',     // Technician rejected
                 'in_progress',  // Job started
                 'completed',    // Job done
-                'cancelled',    // Either party cancelled
+                'cancelled',
+                'waiting_for_customer',    // Either party cancelled
             ])->default('pending');
 
             $table->decimal('agreed_price', 10, 2)->nullable();

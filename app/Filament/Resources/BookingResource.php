@@ -23,28 +23,40 @@ class BookingResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\TextInput::make('booking_code')
-                ->label('Booking Number')
-                ->disabled(),
+            Forms\Components\Section::make('Booking Information')
+                ->schema([
+                    Forms\Components\TextInput::make('booking_code')
+                        ->label('Booking Number')
+                        ->disabled(),
 
-            Forms\Components\Select::make('status')
-                ->label('Status')
-                ->options([
-                    'pending'     => 'Pending',
-                    'accepted'    => 'Accepted',
-                    'rejected'    => 'Rejected',
-                    'in_progress' => 'In Progress',
-                    'completed'   => 'Completed',
-                    'cancelled'   => 'Cancelled',
+                    Forms\Components\Select::make('status')
+                        ->label('Status')
+                        ->options([
+                            'pending'     => 'Pending',
+                            'accepted'    => 'Accepted',
+                            'rejected'    => 'Rejected',
+                            'in_progress' => 'In Progress',
+                            'completed'   => 'Completed',
+                            'cancelled'   => 'Cancelled',
+                        ]),
                 ]),
 
-            Forms\Components\Textarea::make('description')
-                ->label('Description')
-                ->columnSpanFull(),
+            Forms\Components\Section::make('Financials & Notes')
+                ->schema([
+                    Forms\Components\TextInput::make('agreed_price')
+                        ->label('Agreed Price (TZS)')
+                        ->numeric()
+                        ->prefix('TZS')
+                        ->placeholder('0.00'),
 
-            Forms\Components\Textarea::make('technician_notes')
-                ->label('Technician Notes')
-                ->columnSpanFull(),
+                    Forms\Components\Textarea::make('description')
+                        ->label('Description')
+                        ->columnSpanFull(),
+
+                    Forms\Components\Textarea::make('technician_notes')
+                        ->label('Technician Notes')
+                        ->columnSpanFull(),
+                ]),
         ]);
     }
 
@@ -66,11 +78,12 @@ class BookingResource extends Resource
                     ->label('Technician')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('technician_notes')
-                    ->label('Technician Notes')
-                    ->limit(50)
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('agreed_price')
+                    ->label('Price')
+                    ->money('TZS')
+                    ->sortable(),
 
+                
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()

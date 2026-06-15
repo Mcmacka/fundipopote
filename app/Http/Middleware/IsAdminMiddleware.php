@@ -17,7 +17,7 @@ class IsAdminMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->user()?->isAdmin()) {
-            abort(403, 'Usiingie hapa. Eneo la Wasimamizi pekee.');
+            abort(403, 'Don\'t have permission to access this resource.');
         }
 
         return $next($request);

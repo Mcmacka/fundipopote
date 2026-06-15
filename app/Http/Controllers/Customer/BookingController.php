@@ -142,14 +142,46 @@ public function update(Request $request, Booking $booking)
     return redirect()->route('customer.bookings.index')->with('success', 'Request updated successfully!');
 }
 
+
 public function destroy(Booking $booking)
 {
-    // Mteja anaweza kufuta ikiwa 'pending' AU 'completed'
-    $allowedStatuses = ['pending', 'completed'];
-    abort_if(!in_array($booking->status, $allowedStatuses), 403, 'Unauthorized action.');
+    // Uhakiki wa usalama (mteja aone zake tu)
+    if ($booking->customer_id !== auth()->id()) {
+        abort(403, 'Unauthorized.');
+    }
+
+    // Ruhusu kufuta ikiwa status ni pending, cancelled, AU completed
+    $allowedStatuses = ['pending', 'cancelled', 'completed'];
+    
+    if (!in_array($booking->status, $allowedStatuses)) {
+        return redirect()->back()->with('error', 'you cannot delete this booking.');
+    }
 
     $booking->delete();
-    return redirect()->route('customer.bookings.index')->with('success', 'Booking request removed.');
+    
+    return redirect()->route('customer.bookings.index')
+                     ->with('success', 'Booking request removed successfully.');
+}
+
+public function acceptPrice(Request $request, Booking $booking): RedirectResponse
+{
+    // 1. Uhakiki: Mteja anaruhusiwa kubali kama status ni 'waiting_for_customer'
+    if ($booking->status !== 'waiting_for_customer') {
+        return redirect()->back()->with('error', 'You cannot accept the price at this time.');
+    }
+
+    // 2. Uhakiki: Hakikisha kuna bei iliyowekwa
+    if ($booking->agreed_price <= 0) {
+        return redirect()->back()->with('error', 'The agreed price is not valid, please contact the technician.');
+    }
+
+    // 3. Kubadilisha status
+    $booking->update(['status' => 'accepted']);
+
+    // Hapa unaweza kuongeza event ya kutuma Notification kwa fundi
+    // event(new \App\Events\PriceAccepted($booking));
+
+    return redirect()->back()->with('success', 'The price has been accepted, the work will start soon.');
 }
     
 }

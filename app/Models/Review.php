@@ -17,6 +17,7 @@ class Review extends Model
         'technician_id',
         'rating',
         'comment',
+        'technician_notes',
     ];
 
     public function technician()
@@ -28,4 +29,9 @@ public function customer()
 {
     return $this->belongsTo(\App\Models\User::class, 'customer_id');
 }
+public function booking()
+{
+    return $this->belongsTo(\App\Models\Booking::class, 'booking_id');
+}
+
 }

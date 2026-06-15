@@ -18,30 +18,38 @@ class ReviewResource extends Resource
     protected static ?string $navigationGroup = 'Management';
 
     public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                Forms\Components\Select::make('technician_id')
-                    ->relationship('technician', 'name')
-                    ->label('Technician')
-                    ->required()
-                    ->disabled(),
-                Forms\Components\Select::make('customer_id')
-                    ->relationship('customer', 'name')
-                    ->label('Customer')
-                    ->required()
-                    ->disabled(),
-                Forms\Components\TextInput::make('rating')
-                    ->label('Rating')
-                    ->numeric()
-                    ->required()
-                    ->minValue(1)
-                    ->maxValue(5),
-                Forms\Components\Textarea::make('comment')
-                    ->label('Private Customer Feedback')
-                    ->columnSpanFull(),
-            ]);
-    }
+{
+    return $form
+        ->schema([
+            Forms\Components\Select::make('technician_id')
+                ->relationship('technician', 'name')
+                ->label('Technician')
+                ->required()
+                ->disabled(),
+
+            Forms\Components\Select::make('customer_id')
+                ->relationship('customer', 'name')
+                ->label('Customer')
+                ->required()
+                ->disabled(),
+
+            Forms\Components\TextInput::make('rating')
+                ->label('Rating')
+                ->numeric()
+                ->required()
+                ->minValue(1)
+                ->maxValue(5),
+
+            Forms\Components\Textarea::make('comment')
+                ->label('Private Customer Feedback')
+                ->columnSpanFull(),
+
+            // ONGEZA SEHEMU HII HAPA:
+            Forms\Components\Textarea::make('bookings.technician_notes')
+                ->label('Technician Note')
+                ->columnSpanFull(),
+        ]);
+}
 
     public static function table(Table $table): Table
     {
@@ -72,7 +80,7 @@ class ReviewResource extends Resource
                     ->dateTime()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('technician_notes')
+                Tables\Columns\TextColumn::make('bookings.technician_notes')
               ->label('Technician Note')
               ->searchable()
                  ->limit(50), // Inaongeza hii ili kuonyesha sehemu ya maoni ya fundi kwenye orodha

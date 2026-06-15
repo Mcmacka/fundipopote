@@ -37,7 +37,7 @@
                 <p class="text-gray-600">{{ $booking->location_address }}</p>
             </div>
 
-            <div class="p-6 bg-gray-50/50">
+            <div class="p-6">
                 <div class="flex items-center gap-2 mb-4 text-purple-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     <h3 class="font-bold text-gray-800 text-lg">Customer Contact</h3>
@@ -62,6 +62,56 @@
                     </a>
                 </div>
             </div>
+
+            <div class="p-6 bg-gray-50 border-t border-gray-100">
+    <h3 class="font-bold text-gray-800 mb-4">Service Pricing</h3>
+
+    {{-- Tunabadilisha condition: Fomu inaonekana kama status SIYO completed --}}
+    @if($booking->status !== 'completed')
+        <form action="{{ route('technician.bookings.propose-price', $booking->id) }}" method="POST">
+            @csrf
+            <div class="mb-4">
+                <label class="block text-sm font-bold text-gray-700">
+                    {{ $booking->agreed_price > 0 ? 'Sasisha Bei ya Kazi (TZS)' : 'Weka Bei ya Kazi (TZS)' }}
+                </label>
+                <input type="number" name="agreed_price" 
+                       value="{{ $booking->agreed_price > 0 ? $booking->agreed_price : '' }}" 
+                       class="w-full p-3 border border-gray-300 rounded-xl" 
+                       placeholder="Mfano: 50000" required>
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700">
+                {{ $booking->agreed_price > 0 ? 'Sasisha Bei' : 'Tuma Bei kwa Mteja' }}
+            </button>
+        </form>
+    @else
+        {{-- Ujumbe huu unaonekana tu kazi ikiwa imekamilika --}}
+        <div class="p-4 bg-green-50 border border-green-200 rounded-xl">
+            <p class="font-bold text-green-800">Bei ya Mwisho: {{ number_format($booking->agreed_price) }} TZS</p>
+        </div>
+    @endif
+</div>
+
+
+{{-- SEHEMU MPYA: Maelezo (Notes) Yanayojitegemea --}}
+<div class="p-6 bg-white border border-gray-100 rounded-xl shadow-sm">
+    <form action="{{ route('technician.bookings.update-notes', $booking->id) }}" method="POST">
+        @csrf
+        @method('PATCH')
+        <div class="mb-4">
+            <label class="block text-sm font-bold text-gray-700 mb-2">
+                Technician Notes (Internal & Customer Updates)
+            </label>
+            <textarea name="technician_notes" 
+                      class="w-full p-3 border border-gray-300 rounded-xl" 
+                      rows="3" 
+                      placeholder="Andika maelezo ya kazi hapa...">{{ $booking->technician_notes }}</textarea>
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold hover:bg-blue-700 transition">
+            Save Notes Only
+        </button>
+    </form>
+</div>
+
         </div>
     </div>
 </div>

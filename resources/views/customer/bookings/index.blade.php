@@ -104,6 +104,11 @@
                                     Completed
                                 </span>
                                 @break
+
+                                @case('cancelled')
+                                 <span class="text-rose-700 bg-rose-50 px-2 py-1 rounded border border-rose-200 uppercase font-bold text-xs">Cancelled
+                                 </span>
+                                 @break
                         @endswitch
 
                         {{-- SEHEMU ILIYOONGEZWA YA DELETE --}}

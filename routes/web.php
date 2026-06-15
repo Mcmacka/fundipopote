@@ -67,6 +67,10 @@ Route::patch('/profile/photo', [CustomerProfileController::class, 'updatePhoto']
         Route::get('/bookings/{booking}/edit', [CustomerBookingController::class, 'edit'])->name('bookings.edit');
         Route::patch('/bookings/{booking}', [CustomerBookingController::class, 'update'])->name('bookings.update');
         Route::delete('/bookings/{booking}', [CustomerBookingController::class, 'destroy'])->name('bookings.destroy');
+        Route::middleware(['auth', 'role:customer'])->prefix('customer')->group(function () {
+        Route::post('/bookings/{booking}/accept-price', [App\Http\Controllers\Customer\BookingController::class, 'acceptPrice'])
+         ->name('bookings.accept-price');
+});
 
     });
 
@@ -96,11 +100,18 @@ Route::middleware(['auth', 'verified.user'])
             
             // Hizi ndizo routes sahihi za Booking
             Route::get('/bookings', [TechnicianBookingController::class, 'index'])->name('bookings.index');
+            Route::post('/bookings/{booking}/accept', [TechnicianBookingController::class, 'accept'])->name('bookings.accept');
             Route::get('/bookings/{booking}', [TechnicianBookingController::class, 'show'])->name('bookings.show');
             Route::patch('/bookings/{booking}', [TechnicianBookingController::class, 'update'])->name('bookings.update');
             Route::post('/bookings/{booking}/complete', [TechnicianBookingController::class, 'complete'])->name('bookings.complete');
+            Route::middleware(['auth', 'role:technician'])->prefix('technician')->group(function () {
+            Route::post('/bookings/{booking}/propose-price', [App\Http\Controllers\Technician\BookingController::class, 'proposePrice'])
+         ->name('bookings.propose-price');});
+            Route::post('/bookings/{booking}/reject', [TechnicianBookingController::class, 'reject'])->name('bookings.reject');
+            Route::patch('/bookings/{booking}/update-notes', [TechnicianBookingController::class, 'updateNotes'])->name('bookings.update-notes');
         });
-    });
+    }); 
+         
 
 // ══════════════════════════════════════
 // GUEST/PASSWORD RESET ROUTES

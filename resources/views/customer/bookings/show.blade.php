@@ -15,7 +15,7 @@
         Back to My Bookings
     </a>
 
-    {{-- Alert ya mafanikio pindi mteja anapotoka kutengeneza booking mpya --}}
+    {{-- Alert ya mafanikio --}}
     @if(session('success'))
         <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-sm font-medium flex items-center gap-2 shadow-sm">
             <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,7 +29,6 @@
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
         <div class="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-8 text-white">
             <div class="flex items-center gap-4">
-                {{-- Profile Photo Rendering Pipeline --}}
                 <div class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-white text-3xl font-bold border-2 border-white/30 shadow-lg overflow-hidden flex-shrink-0">
                     @if($booking->technician->technicianProfile && $booking->technician->technicianProfile->profile_photo)
                         <img src="{{ asset('storage/' . $booking->technician->technicianProfile->profile_photo) }}" 
@@ -45,7 +44,6 @@
                         {{ $booking->category->name }}
                     </span>
                     
-                    {{-- Star Rating Pipeline --}}
                     @if($booking->technician->technicianProfile)
                         <div class="flex items-center gap-1 mt-2.5">
                             @php 
@@ -80,14 +78,14 @@
                         @case('pending')
                             <span class="px-3 py-1 text-xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wide">Pending Approval</span>
                             @break
+                        @case('waiting_for_customer')
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wide">Waiting for Price Approval</span>
+                            @break
                         @case('accepted')
                             <span class="px-3 py-1 text-xs font-bold rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wide">In Progress</span>
                             @break
                         @case('completed')
                             <span class="px-3 py-1 text-xs font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wide">Service Completed</span>
-                            @break
-                        @case('cancelled')
-                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-rose-50 text-rose-700 border border-rose-200 uppercase tracking-wide">Cancelled</span>
                             @break
                         @default
                             <span class="px-3 py-1 text-xs font-bold rounded-full bg-gray-50 text-gray-700 border border-gray-200 uppercase tracking-wide">{{ $booking->status }}</span>
@@ -102,102 +100,89 @@
                         {{ $booking->description ?? 'No specific job details were recorded.' }}
                     </p>
                 </div>
-
                 <div class="space-y-4">
                     <div>
                         <h3 class="font-bold text-gray-800 mb-1 tracking-tight">Service Location</h3>
                         <p class="text-gray-600 flex items-start gap-2 bg-white p-2.5 rounded-xl border border-gray-100">
-                            <svg class="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
                             <span class="font-medium text-gray-700">{{ $booking->location_address }}</span>
                         </p>
                     </div>
-
-                    <div>
-                        <h3 class="font-bold text-gray-800 mb-1 tracking-tight">Submitted On</h3>
-                        <p class="text-gray-600 flex items-center gap-2 bg-white p-2.5 rounded-xl border border-gray-100">
-                            <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 3V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            <span class="font-medium text-gray-700">{{ $booking->created_at->format('M d, Y \a\t h:i A') }}</span>
-                        </p>
-                    </div>
-
-                   
                 </div>
             </div>
         </div>
 
-        {{-- Technician Feedback Update Block --}}
-        @if($booking->technician_notes)
-            <div class="p-6 bg-slate-50/80 border-t border-gray-100">
-                <h4 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    <svg class="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-                    </svg>
-                    Feedback / Update from Technician
-                </h4>
-                <p class="text-sm text-gray-600 italic bg-white p-4 rounded-xl border border-gray-100">
-                    "{{ $booking->technician_notes }}"
-                </p>
-            </div>
-        @endif
+        
+            {{-- Price Negotiation Section --}}
+<div class="p-6 bg-white border border-gray-100 rounded-xl shadow-sm mt-6">
+    <h3 class="font-bold text-gray-800 mb-4">Service Price History</h3>
 
-        {{-- Rating Section --}}
-        @if($booking->status === 'completed' && auth()->id() === $booking->customer_id)
-            <div class="p-6 border-t border-gray-100 bg-gray-800">
-                @if(!$booking->review)
-                    <h3 class="text-lg font-bold text-white mb-4">Rate This Service</h3>
-                    <form action="{{ route('customer.bookings.rate', $booking->id) }}" method="POST">
-                        @csrf
-                        <div class="mb-4">
-                            <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Rating Score</label>
-                            <select name="rating" required class="w-full rounded-xl border-gray-600 bg-gray-900 text-white p-3">
-                                <option value="5">5 Stars - Excellent</option>
-                                <option value="4">4 Stars - Very Good</option>
-                                <option value="3">3 Stars - Average</option>
-                                <option value="2">2 Stars - Poor</option>
-                                <option value="1">1 Star - Bad</option>
-                            </select>
-                        </div>
-                        <div class="mb-4">
-                            <textarea name="comment" rows="3" class="w-full rounded-xl border-gray-600 bg-gray-900 text-white p-3" placeholder="Leave a comment..."></textarea>
-                        </div>
-                        <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl">Submit Review</button>
-                    </form>
-                @else
-                    <p class="text-emerald-400 font-bold">You have already rated this service.</p>
-                @endif
-            </div>
-        @endif
+    @if($booking->agreed_price > 0)
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+            <span class="text-gray-600 font-medium">Agreed Price:</span>
+            <span class="text-xl font-extrabold text-emerald-600">
+                {{ number_format($booking->agreed_price) }} TZS
+            </span>
+        </div>
+    @else
+        <p class="text-gray-400 italic">No price agreed for this service.</p>
+    @endif
+
+    {{-- Sehemu nyingine za ku-accept bei kama bado ni 'waiting_for_customer' --}}
+    @if($booking->status === 'waiting_for_customer')
+        <form action="{{ route('customer.bookings.accept-price', $booking->id) }}" method="POST" class="mt-4">
+            @csrf
+            <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">
+                Accept Price
+            </button>
+        </form>
+    @endif
+</div>
 
         {{-- Action Buttons --}}
         <div class="p-6 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-3">
             @if($booking->technician->phone)
                 <a href="tel:{{ $booking->technician->phone }}"
                    class="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-100 transition shadow-sm">
-                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 8V5z"/>
-                    </svg>
                     Call {{ $booking->technician->name }}
                 </a>
             @endif
         </div>
 
-        @push('scripts')
-<script type="module">
-    // Inasikiliza channel ya mteja husika kwa kutumia Echo
-    Echo.private('booking.{{ auth()->id() }}')
-        .listen('BookingCompleted', (e) => {
-            console.log("Kazi imekamilika! Tunarefresh ukurasa...");
-            window.location.reload(); 
-        });
-</script>
-@endpush
-
+        {{-- Review Section --}}
+@if($booking->status === 'completed')
+    <div class="p-6 bg-white border border-gray-100 rounded-xl shadow-sm mt-6">
+        <h3 class="font-bold text-gray-800 mb-4">Rate This Service</h3>
+        
+        @if($booking->review()->exists())
+            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
+                <p class="text-emerald-800 font-bold">✓ You have already submitted your feedback. Thank you!</p>
+            </div>
+        @else
+            <form action="{{ route('customer.bookings.rate', $booking->id) }}" method="POST">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Rating (1-5 stars)</label>
+                    <select name="rating" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Poor</option>
+                        <option value="1">1 - Very Bad</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <textarea name="comment" rows="3" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="Share your experience..."></textarea>
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition">
+                    Submit Review
+                </button>
+            </form>
+        @endif
+    </div>
+@endif
     </div>
 </div>
-@endsection
 
+
+@endsection
