@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\VerificationController;
+use App\Http\Controllers\NotificationController;
 
 // Controllers za Mteja (Customer)
 use App\Http\Controllers\Customer\BookingController as CustomerBookingController;
@@ -70,6 +71,8 @@ Route::patch('/profile/photo', [CustomerProfileController::class, 'updatePhoto']
         Route::middleware(['auth', 'role:customer'])->prefix('customer')->group(function () {
         Route::post('/bookings/{booking}/accept-price', [App\Http\Controllers\Customer\BookingController::class, 'acceptPrice'])
          ->name('bookings.accept-price');
+         
+        
 });
 
     });
@@ -133,6 +136,8 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('/terms', [VerificationController::class, 'showTerms'])->name('terms.show');
     Route::post('/terms', [VerificationController::class, 'acceptTerms'])->name('terms.accept');
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])
+         ->name('notifications.index');
 }); // Hapa ndipo ilipokuwa inakosekana
 
 // ══════════════════════════════════════

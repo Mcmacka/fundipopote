@@ -45,7 +45,7 @@ class ReviewResource extends Resource
                 ->columnSpanFull(),
 
             // ONGEZA SEHEMU HII HAPA:
-            Forms\Components\Textarea::make('bookings.technician_notes')
+            Forms\Components\Textarea::make('booking.technician_notes')
                 ->label('Technician Note')
                 ->columnSpanFull(),
         ]);
@@ -80,7 +80,7 @@ class ReviewResource extends Resource
                     ->dateTime()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('bookings.technician_notes')
+                Tables\Columns\TextColumn::make('booking.technician_notes')
               ->label('Technician Note')
               ->searchable()
                  ->limit(50), // Inaongeza hii ili kuonyesha sehemu ya maoni ya fundi kwenye orodha

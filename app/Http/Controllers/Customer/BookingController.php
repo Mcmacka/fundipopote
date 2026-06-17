@@ -47,6 +47,9 @@ class BookingController extends Controller
     /**
      * Store a newly created booking in storage.
      */
+    /**
+     * Store a newly created booking in storage.
+     */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -65,10 +68,20 @@ class BookingController extends Controller
 
         $booking = Booking::create($validated);
 
+        // Notification: Tunamtumia fundi taarifa ya booking mpya
+        $technician = \App\Models\User::find($validated['technician_id']);
+        
+        if ($technician) {
+            $technician->notify(new \App\Notifications\BookingRequestNotification($booking));
+        }
+
+        \App\Jobs\CancelPendingBooking::dispatch($booking->id)->delay(now()->addMinutes(5));
+
         return redirect()
             ->route('customer.bookings.show', $booking->id)
             ->with('success', 'Your service request has been sent successfully.');
     }
+  
 
     /**
      * Display the specified booking summary.
@@ -85,6 +98,9 @@ class BookingController extends Controller
         return view('customer.bookings.show', compact('booking'));
     }
 
+    /**
+     * Store a new rating/review.
+     */
     /**
      * Store a new rating/review.
      */
@@ -115,8 +131,12 @@ class BookingController extends Controller
             'comment'       => $validated['comment'],
         ]);
 
-        // 5. Baada ya ku-rate, mpeleke mteja kwenye index ili aone ma-booking yake mengine 
-        // na ujumbe wa shukrani (Success Message).
+        // --- HAPA NDIPO TUNATUMA NOTIFICATION YA SHUKRANI ---
+        auth()->user()->notify(new \App\Notifications\ThankYouNotification(
+            "Thank you for your feedback! We appreciate you taking the time to share your experience with us. Your review helps us improve our services and assists other customers in making informed decisions. We look forward to serving you again in the future!"
+        ));
+        // ----------------------------------------------------
+
         return redirect()->route('customer.bookings.index')
                          ->with('success', 'Thank you! Your feedback has been submitted successfully.');
     }
@@ -178,8 +198,13 @@ public function acceptPrice(Request $request, Booking $booking): RedirectRespons
     // 3. Kubadilisha status
     $booking->update(['status' => 'accepted']);
 
-    // Hapa unaweza kuongeza event ya kutuma Notification kwa fundi
-    // event(new \App\Events\PriceAccepted($booking));
+    // --- NOTIFICATION KWA FUNDI ---
+    $technician = \App\Models\User::find($booking->technician_id);
+    if ($technician) {
+        // Hapa unatumia ile Notification Class tuliyotaja awali (PriceAcceptedNotification)
+        $technician->notify(new \App\Notifications\PriceAcceptedNotification($booking));
+    }
+    // ------------------------------
 
     return redirect()->back()->with('success', 'The price has been accepted, the work will start soon.');
 }

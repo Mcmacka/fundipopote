@@ -11,14 +11,15 @@ use Illuminate\Notifications\Notification;
 class BookingStatusNotification extends Notification
 {
     use Queueable;
-
-    public function __construct(
-        private readonly Booking $booking
-    ) {}
+    
+    protected $booking;
+    public function __construct($booking) {
+    $this->booking = $booking;
+}
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -54,7 +55,8 @@ class BookingStatusNotification extends Notification
             'booking_id'   => $this->booking->id,
             'booking_code' => $this->booking->booking_code,
             'status'       => $this->booking->status,
-            'message'      => "your request have new status: {$this->booking->status}",
+            'message' => 'Hali ya Booking ' . $this->booking->booking_code . ' imebadilishwa kuwa: ' . $this->booking->status,
+            'type' => $this->booking->status === 'cancelled' ? 'booking_cancelled' : 'status_update',
         ];
     }
 }

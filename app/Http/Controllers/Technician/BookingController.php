@@ -45,17 +45,28 @@ class BookingController extends Controller
         return view('technician.bookings.show', compact('booking'));
     }
 
-    public function proposePrice(Request $request, Booking $booking): RedirectResponse
-    {
-        $request->validate(['agreed_price' => 'required|numeric']);
-        
-        $booking->update([
-            'agreed_price' => $request->agreed_price,
-            'status' => 'waiting_for_customer'
-        ]);
+ public function proposePrice(Request $request, Booking $booking): RedirectResponse
+{
+    $request->validate(['agreed_price' => 'required|numeric']);
+    
+    $booking->update([
+        'agreed_price' => $request->agreed_price,
+        'status' => 'waiting_for_customer'
+    ]);
 
-        return redirect()->back()->with('success', 'price has been proposed.');
-    }
+    $message = "Fundi " . auth()->user()->name . " The price that proposed by Technician is " . number_format($request->agreed_price);
+    $url = route('customer.bookings.show', $booking->id);
+    
+    // Hapa tunapitisha arguments zote 4 zinazohitajika
+    $booking->customer->notify(new \App\Notifications\BookingNotification(
+        $message, 
+        $url, 
+        $booking, 
+        auth()->id() // Hii ndiyo technician_id
+    ));
+
+    return redirect()->back()->with('success', 'Price proposed and customer notified.');
+}
 
    public function update(Request $request, Booking $booking): RedirectResponse
 {
@@ -85,12 +96,20 @@ class BookingController extends Controller
             $message = 'You have marked the job as completed.';
             break;
 
-        case 'cancelled':
-            $booking->update(['status' => 'cancelled']);
-            // Notification inatumwa hapa
-            $booking->customer->notify(new \App\Notifications\BookingStatusNotification($booking));
-            $message = 'You have cancelled the job.';
-            break;
+       case 'cancelled':
+    $booking->update(['status' => 'cancelled']);
+    
+    $technician = \App\Models\User::find($booking->technician_id);
+    
+    if ($technician) {
+        try {
+            $technician->notify(new \App\Notifications\BookingStatusNotification($booking));
+            \Log::info("Notification imetumwa kwa fundi: " . $technician->id);
+        } catch (\Exception $e) {
+            \Log::error("Kuna tatizo kutuma notification: " . $e->getMessage());
+        }
+    }
+    break;
     }
 
     return redirect()->back()->with('success', $message);

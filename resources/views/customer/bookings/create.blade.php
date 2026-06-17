@@ -107,8 +107,8 @@
             </button>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <input type="text" name="location_lat" id="lat-f" value="{{ old('location_lat') }}" placeholder="Latitude" required readonly class="w-full border border-gray-200 bg-gray-100/60 rounded-2xl px-4 py-3 text-sm">
-            <input type="text" name="location_lng" id="lng-f" value="{{ old('location_lng') }}" placeholder="Longitude" required readonly class="w-full border border-gray-200 bg-gray-100/60 rounded-2xl px-4 py-3 text-sm">
+            <input type="hidden" name="location_lat" id="lat-f" value="{{ old('location_lat') }}" placeholder="Latitude" required readonly class="w-full border border-gray-200 bg-gray-100/60 rounded-2xl px-4 py-3 text-sm">
+            <input type="hidden" name="location_lng" id="lng-f" value="{{ old('location_lng') }}" placeholder="Longitude" required readonly class="w-full border border-gray-200 bg-gray-100/60 rounded-2xl px-4 py-3 text-sm">
           </div>
         </div>
 
@@ -123,20 +123,19 @@
 
 @push('scripts')
 <script>
-function grabGPS() {
-  const btn = document.getElementById('btn-gps');
-  btn.disabled = true;
-  btn.textContent = 'Locating...';
-  navigator.geolocation.getCurrentPosition(
-    p => {
-      document.getElementById('lat-f').value = p.coords.latitude;
-      document.getElementById('lng-f').value = p.coords.longitude;
-      btn.textContent = 'Detected ✓';
-      btn.disabled = false;
-    },
-    () => { btn.textContent = 'Failed, retry?'; btn.disabled = false; }
-  );
-}
+    function grabGPS() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('lat-f').value = position.coords.latitude;
+                document.getElementById('lng-f').value = position.coords.longitude;
+                alert("Location captured successfully!");
+            }, function(error) {
+                alert("Error: " + error.message);
+            });
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    }
 </script>
 @endpush
 @endsection

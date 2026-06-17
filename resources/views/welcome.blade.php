@@ -54,7 +54,7 @@
             </div>
 
             <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6">
-                Connecting Demand with Vetted Technical Expertise
+                Connecting Demand with Approved Technical Expertise
             </h1>
             
             <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto mb-12 leading-relaxed">

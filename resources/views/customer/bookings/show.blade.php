@@ -148,6 +148,22 @@
             @endif
         </div>
 
+
+        @if($booking->status === 'cancelled')
+    <div style="background-color: #f8d7da; padding: 15px; border-radius: 8px; margin-top: 20px;">
+        <h4 style="margin:0; color: #721c24;">Hali ya Ombi: Imeghairiwa</h4>
+        <p style="margin: 5px 0 0;">
+            @if(str_contains($booking->cancellation_reason, 'TIMEOUT'))
+                Kazi imefutwa kiotomatiki kwa sababu fundi hakujibu ndani ya muda uliopangwa. Tafadhali jaribu kuomba fundi mwingine.
+            @elseif(str_contains($booking->cancellation_reason, 'REJECTED'))
+                Fundi amegairi kufanya kazi hii. Unaweza kutafuta fundi mwingine kwenye orodha yetu.
+            @else
+                Ombi hili limefutwa.
+            @endif
+        </p>
+    </div>
+@endif
+
         {{-- Review Section --}}
 @if($booking->status === 'completed')
     <div class="p-6 bg-white border border-gray-100 rounded-xl shadow-sm mt-6">

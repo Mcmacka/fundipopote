@@ -25,150 +25,78 @@
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="flex justify-between items-center h-16">
 
-      {{-- Kushoto: Hamburger (Simu tu) + Logo --}}
+      {{-- Kushoto --}}
       <div class="flex items-center gap-3">
         @auth
-          {{-- Kitufe hiki kinatokea TU browser ikiwa ndogo (md:hidden) --}}
           <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
             </svg>
           </button>
         @endauth
-
         <a href="/" class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg btn-primary flex items-center justify-center text-white font-bold text-sm">F</div>
           <span class="text-lg font-bold text-gray-900">Fundi<span class="text-emerald-600">Popote</span></span>
         </a>
       </div>
 
-      {{-- KATIKATI: LINKS ZA JUU (Zinaonekana kwenye PC tu - hidden md:flex) --}}
+      {{-- KATIKATI: Links za Desktop --}}
       <div class="hidden md:flex items-center gap-1">
         @auth
           @if(auth()->user()->isCustomer())
-            <a href="{{ route('customer.search') }}"
-               class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('customer.search') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900' }}">
-              Find Technicians
-            </a>
-            <a href="{{ route('customer.bookings.index') }}"
-               class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('customer.bookings*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900' }}">
-              My Bookings
-            </a>
+            <a href="{{ route('customer.search') }}" class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('customer.search') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">Find Technicians</a>
+            <a href="{{ route('customer.bookings.index') }}" class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('customer.bookings*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">My Bookings</a>
             <a href="{{ route('customer.profile.edit') }}" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">My Profile</a>
           @endif
-
           @if(auth()->user()->isTechnician())
-            <a href="{{ route('technician.dashboard') }}"
-               class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('technician.dashboard') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">
-              Dashboard
-            </a>
-            <a href="{{ route('technician.profile.edit') }}"
-               class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('technician.profile.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">
-              My Profile
-            </a>
-            <a href="{{ route('technician.portfolio.index') }}"
-               class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('technician.portfolio.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">
-              Portfolio
-            </a>
-            <a href="{{ route('technician.subscription.index') }}"
-               class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('technician.subscription.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">
-              Subscription
-            </a>
+            <a href="{{ route('technician.dashboard') }}" class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('technician.dashboard') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">Dashboard</a>
+            <a href="{{ route('technician.profile.edit') }}" class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('technician.profile.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">My Profile</a>
+            <a href="{{ route('technician.portfolio.index') }}" class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('technician.portfolio.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">Portfolio</a>
+            <a href="{{ route('technician.subscription.index') }}" class="px-4 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('technician.subscription.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">Subscription</a>
           @endif
         @endauth
       </div>
 
-{{-- KULIA: PROFILE NA SIGN OUT --}}
-<div class="flex items-center gap-3">
-    @auth
-        <div class="flex items-center gap-2">
-            @php
-                $profile = auth()->user()->isTechnician() 
-                    ? auth()->user()->technicianProfile 
-                    : auth()->user()->customerProfile;
-                $hasPhoto = $profile && $profile->profile_photo;
-            @endphp
+      {{-- KULIA: Notifications + Profile --}}
+      <div class="flex items-center gap-3">
+        @auth
+            <a href="{{ route('notifications.index') }}" class="relative p-2 text-gray-400 hover:text-emerald-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                @if(auth()->user()->unreadNotifications->count() > 0)
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                @endif
+            </a>
 
-            @if($hasPhoto)
-                <img src="{{ asset('storage/' . $profile->profile_photo) }}" 
-                     alt="Profile" 
-                     class="w-8 h-8 rounded-full object-cover border border-gray-200">
-            @else
-                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase"
-                     style="background-color: {{ '#' . substr(md5(auth()->user()->name), 0, 6) }};">
-                    {{ substr(auth()->user()->name, 0, 1) }}
-                </div>
-            @endif
+            <div class="flex items-center gap-2 border-l border-gray-200 pl-3">
+                <span class="text-sm font-semibold text-gray-700">{{ explode(' ', auth()->user()->name)[0] }}</span>
+            </div>
 
-            {{-- Jina la user litaonekana pembeni ya picha muda wote --}}
-            <span class="text-sm font-semibold text-gray-700 truncate max-w-[100px]">
-                {{ explode(' ', auth()->user()->name)[0] }}
-            </span>
-        </div>
-
-        <form method="POST" action="{{ route('logout') }}" class="hidden md:block border-l border-gray-200 pl-2 ml-1">
-            @csrf
-            <button type="submit" class="text-xs text-gray-400 hover:text-red-500 transition">Sign out</button>
-        </form>
-    @else
-        <a href="{{ route('login') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900">Sign in</a>
-    @endauth
-</div>
-        
-
+            <form method="POST" action="{{ route('logout') }}" class="hidden md:block">
+                @csrf
+                <button type="submit" class="text-xs text-gray-400 hover:text-red-500">Sign out</button>
+            </form>
+        @else
+            <a href="{{ route('login') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900">Sign in</a>
+        @endauth
+      </div>
     </div>
   </div>
 </nav>
 
-{{-- SEHEMU YA MAUDHUI (PAGES CONTENT) --}}
+{{-- CONTENT --}}
 <div class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6">
-  
-  {{-- FLASH MESSAGES --}}
-  @if(session('success') || session('warning') || session('error') || $errors->any())
-  <div class="mt-4">
-    @if(session('success'))
-      <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-4 mb-3">
-        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-        <p class="text-sm font-medium">{{ session('success') }}</p>
-      </div>
-    @endif
-    @if(session('warning'))
-      <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 mb-3">
-        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-        <p class="text-sm font-medium">{{ session('warning') }}</p>
-      </div>
-    @endif
-    @if(session('error') || $errors->any())
-      <div class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 mb-3">
-        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
-        <div class="text-sm">
-          @if(session('error')){{ session('error') }}@endif
-          @if($errors->any())
-            <ul class="list-disc list-inside space-y-0.5">
-              @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
-            </ul>
-          @endif
-        </div>
-      </div>
-    @endif
-  </div>
-  @endif
-
-  {{-- MAIN VIEW CONTENT --}}
-  <main class="py-6">
-    @yield('content')
-  </main>
+  <main class="py-6">@yield('content')</main>
 </div>
 
-{{-- SIDEBAR YA SIMU (Inafanya kazi Kwenye Simu/Browser Ndogo Tu - md:hidden) --}}
+{{{-- SIDEBAR YA SIMU (Imekamilika na Icons) --}}
 @auth
-  {{-- Sidebar ya Simu - Imeboreshwa na Icons --}}
-<aside id="mobile-sidebar" class="fixed inset-y-0 left-0 top-0 z-50 w-64 bg-white border-r border-gray-100 transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col p-4 shadow-xl">
+<aside id="mobile-sidebar" class="fixed inset-y-0 left-0 top-0 z-50 w-64 bg-white border-r transform -translate-x-full transition-transform duration-300 md:hidden flex flex-col p-4 shadow-xl">
     <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
       <span class="text-sm font-bold text-gray-900">Fundi<span class="text-emerald-600">Popote</span></span>
       <button onclick="toggleSidebar()" class="text-gray-400 hover:text-gray-900 p-1">X</button>
     </div>
 
+    {{-- CUSTOMER LINKS --}}
     @if(auth()->user()->isCustomer())
       <a href="{{ route('customer.search') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -184,6 +112,7 @@
       </a>
     @endif
 
+    {{-- TECHNICIAN LINKS --}}
     @if(auth()->user()->isTechnician())
       <a href="{{ route('technician.dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
@@ -203,6 +132,12 @@
       </a>
     @endif
 
+    {{-- NOTIFICATIONS --}}
+    <a href="{{ route('notifications.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-emerald-600 hover:bg-emerald-50">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      Notifications
+    </a>
+    
     <div class="mt-auto border-t border-gray-100 pt-3">
       <form method="POST" action="{{ route('logout') }}">
         @csrf
@@ -213,56 +148,33 @@
       </form>
     </div>
 </aside>
-
-  {{-- Backdrop giza la nyuma (Simu tu) --}}
-  <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 hidden md:hidden"></div>
+<div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 hidden md:hidden"></div>
 @endauth
-
-{{-- FOOTER --}}
-<footer class="bg-gray-900 text-gray-400 w-full mt-20">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8 text-sm">
-      <div>
-        <div class="flex items-center gap-2 mb-3">
-          <div class="w-7 h-7 rounded-lg btn-primary flex items-center justify-center text-white font-bold text-xs">F</div>
-          <span class="text-white font-bold">FundiPopote</span>
-        </div>
-        <p class="leading-relaxed">Tanzania's trusted marketplace for finding skilled local technicians.</p>
-      </div>
-      <div>
-        <h4 class="text-white font-semibold mb-3">Services</h4>
-        <ul class="space-y-1.5">
-          <li>Electrical Work</li>
-          <li>Plumbing</li>
-        </ul>
-      </div>
-      <div>
-        <h4 class="text-white font-semibold mb-3">Contact</h4>
-        <p>info@fundipopote.co.tz</p>
-      </div>
-    </div>
-    <div class="border-t border-gray-800 pt-6 text-center text-xs">
-      © {{ date('Y') }} FundiPopote Tanzania. All rights reserved.
-    </div>
-  </div>
-</footer>
-
-{{-- SCRIPT YA KUFUNGUA SIDEBAR KWENYE SIMU PeKEE --}}
+@stack('scripts')
 <script>
-function toggleSidebar() {
+    function toggleSidebar() {
     const sidebar = document.getElementById('mobile-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
     
-    if (sidebar.classList.contains('-translate-x-full')) {
-        sidebar.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
+    // Angalia kama vitu hivi vipo kwanza
+    if (sidebar && overlay) {
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+        console.log("Sidebar toggled!"); // Ukiona hii kwenye console, basi JS inafanya kazi
     } else {
-        sidebar.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
+        console.error("Sidebar au Overlay haijapatikana! Angalia ID zako.");
     }
 }
+    function grabGPS() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                document.getElementById('lat-f').value = position.coords.latitude;
+                document.getElementById('lng-f').value = position.coords.longitude;
+                alert("Location captured!");
+            });
+        }
+    }
 </script>
-
-@stack('scripts')
+@endstack
 </body>
 </html>
