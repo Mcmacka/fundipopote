@@ -22,7 +22,7 @@ class RegisteredUserController extends Controller
             'email'    => 'required|email|unique:users',
             'phone'    => 'nullable|string|max:15',
             'role'     => 'required|in:technician,customer',
-            'category_id' => ['required', 'exists:categories,id'],
+            'category_id' => 'nullable|required_if:role,technician|exists:categories,id',
             'password' => 'required|min:8|confirmed',
             'certificate'      => 'required_if:role,technician|file|mimes:pdf,jpg,png|max:2048',
             'residency_letter' => 'required_if:role,technician|file|mimes:pdf,jpg,png|max:2048',
@@ -41,6 +41,7 @@ class RegisteredUserController extends Controller
             'terms_accepted' => false,
             'otp_code'       => $otp,
             'otp_expires_at' => now()->addMinutes(10),
+            'category_id'    => ($request->role === 'technician') ? $request->category_id : null,
         ]);
 
         // 2. Ikiwa ni Fundi, tengeneza profile kwenye technician_profiles table

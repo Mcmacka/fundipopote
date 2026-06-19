@@ -8,6 +8,9 @@ use App\Services\BookingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Log;
+use App\Notifications\BookingStatusNotification;
+use App\Jobs\CancelPendingBooking;
 
 class BookingController extends Controller
 {
@@ -37,117 +40,93 @@ class BookingController extends Controller
     {
         $booking = Booking::findOrFail($id);
         
-        // Kuzuia mtu asiyehusika
         abort_if($booking->technician_id != auth()->id(), 403);
 
-        // Ruhusu kuona kazi kama ni 'pending' (kwa ajili ya bei) AU 'accepted' nk.
         $booking->load('customer');
         return view('technician.bookings.show', compact('booking'));
     }
 
- public function proposePrice(Request $request, Booking $booking): RedirectResponse
-{
-    $request->validate(['agreed_price' => 'required|numeric']);
-    
-    $booking->update([
-        'agreed_price' => $request->agreed_price,
-        'status' => 'waiting_for_customer'
-    ]);
-
-    $message = "Fundi " . auth()->user()->name . " The price that proposed by Technician is " . number_format($request->agreed_price);
-    $url = route('customer.bookings.show', $booking->id);
-    
-    // Hapa tunapitisha arguments zote 4 zinazohitajika
-    $booking->customer->notify(new \App\Notifications\BookingNotification(
-        $message, 
-        $url, 
-        $booking, 
-        auth()->id() // Hii ndiyo technician_id
-    ));
-
-    return redirect()->back()->with('success', 'Price proposed and customer notified.');
-}
-
-   public function update(Request $request, Booking $booking): RedirectResponse
-{
-    // 1. Ongeza 'cancelled' kwenye validation
-    $request->validate([
-        'status' => 'required|in:accepted,rejected,completed,cancelled',
-        'reason' => 'nullable|string|max:255'
-    ]);
-
-    abort_if($booking->technician_id != auth()->id(), 403);
-
-    $message = 'Booking status updated successfully.';
-
-    switch ($request->status) {
-        case 'accepted':
-            $this->bookingService->acceptBooking($booking, auth()->user());
-            $message = 'You have accepted the job.';
-            break;
+    public function proposePrice(Request $request, Booking $booking): RedirectResponse
+    {
+        $request->validate(['agreed_price' => 'required|numeric']);
         
-        case 'rejected':
-            $booking->update(['status' => 'rejected']);
-            $message = 'You have rejected the job.';
-            break;
+        $booking->update([
+            'agreed_price' => $request->agreed_price,
+            'status' => 'waiting_for_customer'
+        ]);
 
-        case 'completed':
-            $booking->update(['status' => 'completed', 'completed_at' => now()]);
-            $message = 'You have marked the job as completed.';
-            break;
+        $message = "Fundi " . auth()->user()->name . " The price that proposed by Technician is " . number_format($request->agreed_price);
+        $url = route('customer.bookings.show', $booking->id);
+        
+        $booking->customer->notify(new \App\Notifications\BookingNotification(
+            $message, 
+            $url, 
+            $booking, 
+            auth()->id()
+        ));
 
-       case 'cancelled':
+        return redirect()->back()->with('success', 'Price proposed and customer notified.');
+    }
+
+    public function update(Request $request, Booking $booking): RedirectResponse
+    {
+        $request->validate([
+            'status' => 'required|in:accepted,rejected,completed,cancelled',
+            'reason' => 'nullable|string|max:255'
+        ]);
+
+        abort_if($booking->technician_id != auth()->id(), 403);
+
+        $message = 'Booking status updated successfully.';
+
+        switch ($request->status) {
+            case 'accepted':
+                $this->bookingService->acceptBooking($booking, auth()->user());
+                $message = 'You have accepted the job.';
+                break;
+            
+            case 'rejected':
+                $booking->update(['status' => 'rejected']);
+                $message = 'You have rejected the job.';
+                break;
+
+            case 'completed':
+                $booking->update(['status' => 'completed', 'completed_at' => now()]);
+                $message = 'You have marked the job as completed.';
+                break;
+
+           case 'cancelled':
     $booking->update(['status' => 'cancelled']);
+    $booking = $booking->fresh();
     
-    $technician = \App\Models\User::find($booking->technician_id);
-    
-    if ($technician) {
-        try {
-            $technician->notify(new \App\Notifications\BookingStatusNotification($booking));
-            \Log::info("Notification imetumwa kwa fundi: " . $technician->id);
-        } catch (\Exception $e) {
-            \Log::error("Kuna tatizo kutuma notification: " . $e->getMessage());
+    try {
+        if ($booking->customer) {
+            // TUTAFUNGA HII KWENYE TRY CATCH
+            $booking->customer->notify(new \App\Notifications\BookingStatusNotification($booking));
         }
+    } catch (\Throwable $e) {
+        \Log::error("NOTIFICATION FAILED: " . $e->getMessage());
+        dd($e->getMessage()); // Hii itasimamisha kila kitu na kukuonyesha error kwenye screen yako
     }
     break;
-    }
 
-    return redirect()->back()->with('success', $message);
-}
-
-    public function handle()
-{
-    // Tafuta bookings ambazo ni 'pending' na zimezidi dakika 5
-    $delayedBookings = Booking::where('status', 'pending')
-        ->where('created_at', '<', now()->subMinutes(5))
-        ->get();
-
-    foreach ($delayedBookings as $booking) {
-        $booking->update(['status' => 'cancelled']);
+        }
+        return redirect()->back()->with('success', $message);
         
-        // Tuma notification kwa mteja
-        $booking->customer->notify(new \App\Notifications\BookingStatusNotification($booking));
     }
 
-    $this->info('Bookings that have been pending for more than 5 minutes have been cancelled.');
-}
+    public function updateNotes(Request $request, Booking $booking): RedirectResponse
+    {
+        abort_if($booking->technician_id != auth()->id(), 403);
 
-public function updateNotes(Request $request, Booking $booking): RedirectResponse
-{
-    // Hakikisha ni fundi husika pekee anayeweza kubadilisha
-    abort_if($booking->technician_id != auth()->id(), 403);
+        $request->validate([
+            'technician_notes' => 'nullable|string|max:1000'
+        ]);
 
-    // Validate maelezo
-    $request->validate([
-        'technician_notes' => 'nullable|string|max:1000'
-    ]);
+        $booking->update([
+            'technician_notes' => $request->technician_notes
+        ]);
 
-    // Sasisha maelezo pekee
-    $booking->update([
-        'technician_notes' => $request->technician_notes
-    ]);
-
-    return redirect()->back()->with('success', 'Notes updated successfully.');
-}
-
+        return redirect()->back()->with('success', 'Notes updated successfully.');
+    }
 }

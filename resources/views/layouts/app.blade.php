@@ -88,7 +88,7 @@
   <main class="py-6">@yield('content')</main>
 </div>
 
-{{{-- SIDEBAR YA SIMU (Imekamilika na Icons) --}}
+{{-- SIDEBAR YA SIMU (Imekamilika na Icons) --}}
 @auth
 <aside id="mobile-sidebar" class="fixed inset-y-0 left-0 top-0 z-50 w-64 bg-white border-r transform -translate-x-full transition-transform duration-300 md:hidden flex flex-col p-4 shadow-xl">
     <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
@@ -175,6 +175,6 @@
         }
     }
 </script>
-@endstack
+
 </body>
 </html>

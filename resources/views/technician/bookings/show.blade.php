@@ -72,7 +72,7 @@
             @csrf
             <div class="mb-4">
                 <label class="block text-sm font-bold text-gray-700">
-                    {{ $booking->agreed_price > 0 ? 'Sasisha Bei ya Kazi (TZS)' : 'Weka Bei ya Kazi (TZS)' }}
+                    {{ $booking->agreed_price > 0 ? 'Sasisha Bei ya Kazi (TZS)' : 'Put Price of the Service (TZS)' }}
                 </label>
                 <input type="number" name="agreed_price" 
                        value="{{ $booking->agreed_price > 0 ? $booking->agreed_price : '' }}" 
@@ -80,7 +80,7 @@
                        placeholder="Mfano: 50000" required>
             </div>
             <button type="submit" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700">
-                {{ $booking->agreed_price > 0 ? 'Sasisha Bei' : 'Tuma Bei kwa Mteja' }}
+                {{ $booking->agreed_price > 0 ? 'Sasisha Bei' : 'Propose Price to Customer' }}
             </button>
         </form>
     @else

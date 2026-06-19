@@ -1,25 +1,26 @@
 <?php
-
 namespace App\Notifications;
-
-use App\Models\Booking;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use App\models\Booking;
+use Illuminate\Bus\Queueable; 
 use Illuminate\Notifications\Notification;
+use Illuminate\Queue\SerializesModels; 
 
 class BookingStatusNotification extends Notification
 {
-    use Queueable;
     
-    protected $booking;
-    public function __construct($booking) {
-    $this->booking = $booking;
-}
+    use Queueable, SerializesModels;
+    // Tunaondoa Queueable na ShouldQueue ili iwe instant
+    public $booking;
+
+    public function __construct(Booking $booking)
+    {
+        $this->booking = $booking;
+    }
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        // Database inakuja kwanza ili iandikwe haraka
+        return ['database' ];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -55,8 +56,8 @@ class BookingStatusNotification extends Notification
             'booking_id'   => $this->booking->id,
             'booking_code' => $this->booking->booking_code,
             'status'       => $this->booking->status,
-            'message' => 'Hali ya Booking ' . $this->booking->booking_code . ' imebadilishwa kuwa: ' . $this->booking->status,
-            'type' => $this->booking->status === 'cancelled' ? 'booking_cancelled' : 'status_update',
+            'message'      => 'Booking ' . $this->booking->booking_code . ' status changed to: ' . $this->booking->status,
+            'type'         => $this->booking->status === 'cancelled' ? 'booking_cancelled' : 'status_update',
         ];
     }
 }
