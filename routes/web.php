@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 
 // Controllers za Mteja (Customer)
 use App\Http\Controllers\Customer\BookingController as CustomerBookingController;
@@ -133,12 +134,11 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/otp/verify', [VerificationController::class, 'showOtpForm'])->name('otp.verify.form');
     Route::post('/otp/verify', [VerificationController::class, 'verifyOtp'])->name('otp.verify');
-    
     Route::get('/terms', [VerificationController::class, 'showTerms'])->name('terms.show');
     Route::post('/terms', [VerificationController::class, 'acceptTerms'])->name('terms.accept');
-    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])
-         ->name('notifications.index');
-}); // Hapa ndipo ilipokuwa inakosekana
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/resend-otp', [RegisteredUserController::class, 'resendOtp'])->name('otp.resend');
+}); 
 
 // ══════════════════════════════════════
 // REDIRECT LOGIC

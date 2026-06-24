@@ -69,4 +69,20 @@ class RegisteredUserController extends Controller
     {
         return view('auth.register');
     }
+
+    public function resendOtp(Request $request)
+{
+    $user = $request->user(); // Au find user kwa kutumia email/id
+
+    // Generates mpya
+    $otp = rand(100000, 999999);
+    $user->otp_code = $otp;
+    $user->otp_expires_at = now()->addMinutes(10);
+    $user->save();
+
+    // Hapa ndipo MailHog itapokea email hii
+    $user->notify(new \App\Notifications\SendOtpNotification($otp));
+
+    return back()->with('success', 'OTP has been sent to your email.');
+}
 }
