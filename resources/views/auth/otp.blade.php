@@ -108,7 +108,7 @@
         
         let timer = setInterval(() => {
             seconds--;
-            resendBtn.innerText = "Subiri (" + seconds + "s)";
+            resendBtn.innerText = "wait (" + seconds + "s)";
             
             if (seconds <= 0) {
                 clearInterval(timer);
