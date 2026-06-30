@@ -42,7 +42,7 @@ class SubscriptionMiddleware
             // Kama hana subscription na anajaribu kwenda dashboard au kwingine, mru hishe kwenye malipo
             return redirect()
                 ->route('technician.subscription.index')
-                ->with('warning', 'your subscription have been reached end or have not been checked buy admin otherwise please get new subscription!.');
+                ->with('warning', 'your subscription have been reached end or have not been checked by admin otherwise please get new subscription!.');
         }
 
         return $next($request);

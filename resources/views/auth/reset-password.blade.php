@@ -14,7 +14,7 @@
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
 
   <div class="absolute -bottom-16 -left-16 w-64 h-64 bg-amber-400 rounded-full opacity-60 filter blur-xl pointer-events-none"></div>
-  <div class="absolute -top-16 -right-16 w-64 h-64 bg-rose-500 transform rotate-45 opacity-70 pointer-events-none"></div>
+  
 
   <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 md:p-10 z-10">
     <div class="w-full text-center">

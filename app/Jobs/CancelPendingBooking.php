@@ -43,7 +43,7 @@ class CancelPendingBooking implements ShouldQueue
                 'type' => 'App\Notifications\BookingStatusNotification',
                 'notifiable_type' => 'App\Models\User',
                 'notifiable_id' => $recipient->id,
-                'data' => json_encode(['message' => 'Booking ya ' . $booking->booking_code . ' job was cancelled because time for the booking has expired.']),
+                'data' => json_encode(['message' => 'Booking  ' . $booking->booking_code . ' job was cancelled because time for the booking has expired.']),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
